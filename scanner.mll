@@ -47,6 +47,7 @@ rule token = parse
 | "char"   { CHAR }
 | "bool"   { BOOL }
 | "void"   { VOID }
+| "lambda" { LAMBDA }
 | "true"   { BLIT(true)  }
 | "false"  { BLIT(false) }
 | "function" { FUNC }
