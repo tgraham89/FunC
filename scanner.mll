@@ -1,6 +1,6 @@
 (* Ocamllex scanner for FunC *)
 
-{ open FunCparse }
+{ open Parser }
 
 let alpha = ['a' - 'z' 'A' - 'Z']
 let digit = ['0'-'9']
@@ -8,9 +8,11 @@ let id = alpha (alpha | digit | '_')*
 let ascii = ([' '-'!' '#'-'[' ']'-'~'])
 let escape = '\\' ['\\' ''' '"' 'n' 'r' 't']
 let escape_char = ''' (escape) '''
+let char = ''' ( ascii | digit ) '''
 let string = ''' (ascii | escape_char )* '''
-let float = (digit)*.digit(digit)+
+let float = (digit)*['.']digit(digit)+
 let intlit = (['1'-'9']['0'-'9']* | '0')
+let stringlit = '"'((ascii|escape)* as lxm)'"'
 
 
 
@@ -27,10 +29,13 @@ rule token = parse
 | ','      { COMMA }
 | '+'      { PLUS }
 | '-'      { MINUS }
+| '/'      { DIVIDE }
+| '*'      { TIMES }
 | '='      { ASSIGN }
 | "=="     { EQ }
 | "!="     { NEQ }
 | '<'      { LT }
+| '>'      { GT }
 | "&&"     { AND }
 | "||"     { OR }
 | "if"     { IF }
@@ -46,11 +51,13 @@ rule token = parse
 | "false"  { BLIT(false) }
 | "function" { FUNC }
 | "->"       { OUTPUT }
-| intlit as lxm { INT_LITERAL(int_of_string lxm) }
-| float as lxm { FLOAT_LITERAL(float_of_string lxm) }
-| char as lxm { CHAR_LITERAL( String.get lxm 1 ) }
-| escape_char as lxm{ CHAR_LITERAL( String.get (unescape lxm) 1) }
-| string { STRING_LITERAL(unescape s) }
+| "list"    { LIST }
+| "struct"  { STRUCT }
+| intlit as lxm { LITERAL(int_of_string lxm) }
+| float as lxm { FLOAT_LIT(float_of_string lxm) }
+| char as lxm { CHAR_LIT( String.get lxm 1 ) }
+(* | escape_char as lxm{ CHAR_LIT( String.get (unescape lxm) 1) } Not sure if this is necessary *) 
+| stringlit { STRING_LIT(lxm) }
 | id as lxm { ID(lxm) }
 | eof { EOF }
 | _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }

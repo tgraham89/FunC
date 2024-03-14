@@ -4,11 +4,18 @@
 open Ast
 %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE PLUS MINUS ASSIGN
+%token SEMI LPAREN RPAREN LBRACE RBRACE ASSIGN
+%token PLUS MINUS DIVIDE TIMES
+%token LBRACK RBRACK LT GT
 %token EQ NEQ LT AND OR
-%token IF ELSE WHILE INT BOOL
+%token IF ELSE WHILE 
+%token INT BOOL FLOAT CHAR VOID
+%token FUNC OUTPUT LIST STRUCT
 %token RETURN COMMA
 %token <int> LITERAL
+%token <string> STRING_LIT
+%token <float> FLOAT_LIT
+%token <char> CHAR_LIT
 %token <bool> BLIT
 %token <string> ID
 %token EOF
