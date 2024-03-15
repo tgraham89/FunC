@@ -15,7 +15,6 @@ let intlit = (['1'-'9']['0'-'9']* | '0')
 let stringlit = '"'((ascii|escape)* as lxm)'"'
 
 
-
 rule token = parse
   [' ' '\t' '\r' '\n'] { token lexbuf } (* Whitespace *)
 | "/*"     { comment lexbuf }           (* Comments *)
@@ -46,6 +45,7 @@ rule token = parse
 | "float"  { FLOAT }
 | "char"   { CHAR }
 | "bool"   { BOOL }
+| "string" { STRING }
 | "void"   { VOID }
 | "lambda" { LAMBDA }
 | "true"   { BLIT(true)  }
