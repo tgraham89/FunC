@@ -40,6 +40,7 @@ rule token = parse
 | "if"     { IF }
 | "else"   { ELSE }
 | "while"  { WHILE }
+| "for"    { FOR }
 | "return" { RETURN }
 | "int"    { INT }
 | "float"  { FLOAT }

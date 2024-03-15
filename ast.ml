@@ -20,7 +20,7 @@ type typ = Int
 
 
 type expr =
-  | Literal of int
+  Literal of int
   | BoolLit of bool
   | StrLit of string
   | ChrLit of char
@@ -29,6 +29,7 @@ type expr =
   | Binop of expr * bop * expr
   | Assign of string * expr
   | ListLit of expr list
+  (* | ExprList of expr list *)
 
 
 type bind = Decl of typ * string 

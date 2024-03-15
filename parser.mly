@@ -56,7 +56,6 @@ typ_rule:
   | LIST typ_rule  { List $2 }
 
 
-
 stmt_list_rule:
     /* nothing */               { []     }
     | stmt_rule stmt_list_rule  { $1::$2 }
@@ -68,7 +67,7 @@ bind_rule:
 
 
 stmt_rule:
-  // expr_list_rule                                                        { }
+  // LBRACK expr_list_rule RBRACK                                          { ExprList $2 }
   | expr_rule SEMI                                                      { Expr $1                }
   | bind_rule SEMI                                                      { Bind $1                }
   | LBRACE stmt_list_rule RBRACE                                        { Block $2               }
@@ -77,9 +76,9 @@ stmt_rule:
   | FOR LPAREN bind_rule SEMI expr_rule SEMI expr_rule RPAREN stmt_rule { For ($3, $5, $7, $9)   }
 
 
-// expr_list_rule:
-//   /* nothing */                       { [] }
-//   | expr_rule COMMA expr_list_rule    { $1 :: $3 }
+expr_list_rule:
+  /* nothing */                       { [] }
+  | expr_rule COMMA expr_list_rule    { $1 :: $3 }
 
 
 expr_rule:
@@ -87,9 +86,8 @@ expr_rule:
   | CHAR_LIT                      { ChrLit $1             }
   | STRING_LIT                    { StrLit $1             }
   | FLOAT_LIT                     { FloatLit $1           }
-  | FLOAT_LIT                     { FloatLit $1           }
   | LITERAL                       { Literal $1            }
-  // | LBRACK expr_list_rule RBRACK  { ListLit($2)           }
+  | LBRACK expr_list_rule RBRACK  { ListLit($2)           }
   | ID                            { Id $1                 }
   | expr_rule PLUS expr_rule      { Binop ($1, Add, $3)   }
   | expr_rule MINUS expr_rule     { Binop ($1, Sub, $3)   }
