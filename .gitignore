@@ -1,0 +1,8 @@
+parser.output
+*.mli
+_build
+_opam
+*.merlin
+parser.mli
+parser.ml
+commit_message.txt
