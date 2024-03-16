@@ -23,7 +23,7 @@ open Ast
 %start program_rule
 %type <Ast.program> program_rule
 
-%right ASSIGN
+%right ASSIGN STRUCT
 %left OR
 %left AND
 %left EQ NEQ
@@ -47,13 +47,14 @@ program_rule:
 
 
 typ_rule:
-  INT         { Int  }
-  | BOOL      { Bool }
-  | CHAR      { Char }
-  | STRING    { String }
-  | FLOAT     { Float }
-  | VOID      { Void }
-  | LIST typ_rule  { List $2 }
+  INT               { Int  }
+  | BOOL            { Bool }
+  | CHAR            { Char }
+  | STRING          { String }
+  | FLOAT           { Float }
+  | VOID            { Void }
+  | LIST typ_rule   { List $2 }
+  | STRUCT ID LBRACE bind_list_rule RBRACE { Struct($2, $4) }
 
 
 stmt_list_rule:
@@ -61,9 +62,19 @@ stmt_list_rule:
     | stmt_rule stmt_list_rule  { $1::$2 }
 
 
+// struct_rule:
+//   STRUCT ID bind_list_rule      { Struct($2, $3) }
+
+
+bind_list_rule:
+  /* nothing */                 { [] }
+  | bind_rule bind_list_rule    { $1 :: $2 }
+
+
 bind_rule:
-  typ_rule ID ASSIGN expr_rule   { Defn ($1, $2, $4) }
+  typ_rule ID ASSIGN expr_rule   { Defn($1, $2, $4) }
   | typ_rule ID                  { Decl($1, $2) }
+  // | STRUCT ID bind_list_rule     { Struct($2, $3) }
 
 
 stmt_rule:
@@ -99,5 +110,8 @@ expr_rule:
   | expr_rule GT expr_rule        { Binop ($1, Greater, $3)  }
   | expr_rule AND expr_rule       { Binop ($1, And, $3)   }
   | expr_rule OR expr_rule        { Binop ($1, Or, $3)    }
+  | PLUS expr_rule                { Literal($2)           }
+  | MINUS expr_rule               { Binop (0, Sub, $2)    }
   | ID ASSIGN expr_rule           { Assign ($1, $3)       }
+  // | struct_rule                   { ($1)                  }
   | LPAREN expr_rule RPAREN       { $2                    }
