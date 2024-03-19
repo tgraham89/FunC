@@ -7,7 +7,6 @@ parser: parser.mly
 	ocamlyacc -v parser.mly
 
 .PHONY: clean
-
 clean:
 	rm -f parser.ml
 	rm -f parser.mli

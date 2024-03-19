@@ -78,6 +78,7 @@ stmt_rule:
   | WHILE LPAREN expr_rule RPAREN stmt_rule                             { While ($3, $5)         }
   | FOR LPAREN bind_rule SEMI expr_rule SEMI expr_rule RPAREN stmt_rule { For ($3, $5, $7, $9)   }
 
+
 expr_rule:
   | BLIT                          { BoolLit $1            }
   | CHAR_LIT                      { ChrLit $1             }
@@ -101,4 +102,4 @@ expr_rule:
   | ID ASSIGN expr_rule           { Assign ($1, $3) }
   | LPAREN bind_list_rule RPAREN FUNCARROW stmt_list_rule { Function($2, $5) }        
   | LPAREN expr_rule RPAREN       { $2 }
-  | LBRACE expr_list_rule RBRACE SEMI  { Struct($2) }
+  | LT expr_list_rule GT  { Struct($2) }
