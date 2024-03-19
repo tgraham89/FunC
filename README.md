@@ -6,6 +6,7 @@ FunC implementation for PLT Spring 2024
 - make scanner
 - make parser
 - make clean
+- ocamlopt -o a.out scanner_test.ml
 
 # Dependencies
 - ocaml
