@@ -1,4 +1,4 @@
-
+build: scanner parser
 
 scanner: scanner.mll
 	ocamlbuild scanner.native
@@ -7,5 +7,9 @@ parser: parser.mly
 	ocamlyacc -v parser.mly
 
 .PHONY: clean
+
 clean:
-	rm parser.output
+	rm -f parser.ml
+	rm -f parser.mli
+	rm -f parser.output
+	rm -rf _build

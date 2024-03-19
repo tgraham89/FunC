@@ -112,8 +112,6 @@ expr_rule:
   | expr_rule GT expr_rule        { Binop ($1, Greater, $3)  }
   | expr_rule AND expr_rule       { Binop ($1, And, $3)   }
   | expr_rule OR expr_rule        { Binop ($1, Or, $3)    }
-  | PLUS expr_rule                { Literal($2)           }
-  | MINUS expr_rule               { Binop (0, Sub, $2)    }
   | ID ASSIGN expr_rule           { Assign ($1, $3)       }
   // | struct_rule                   { ($1)                  }
   | LPAREN expr_rule RPAREN       { $2                    }
