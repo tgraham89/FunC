@@ -61,6 +61,7 @@ rule token = parse
 | "false"  { BLIT(false) }
 | "function" { FUNC }
 | "->"       { OUTPUT }
+| "=>"     { FUNCARROW }
 | "list"    { LIST }
 | "struct"  { STRUCT }
 | intlit as lxm { LITERAL(int_of_string lxm) }

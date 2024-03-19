@@ -6,3 +6,4 @@ _opam
 parser.mli
 parser.ml
 commit_message.txt
+scanner.native
