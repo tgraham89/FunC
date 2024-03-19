@@ -12,4 +12,5 @@ clean:
 	rm -f parser.ml
 	rm -f parser.mli
 	rm -f parser.output
+	rm -f scanner.native
 	rm -rf _build
