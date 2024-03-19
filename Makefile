@@ -1,5 +1,4 @@
 
-
 scanner: scanner.mll
 	ocamlbuild scanner.native
 
