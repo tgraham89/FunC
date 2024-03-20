@@ -8,7 +8,7 @@ type bop = Add
           | Greater
           | Mult
           | Div
-
+          | Vbar
 type expr =
   Literal of int
   | BoolLit of bool
@@ -61,6 +61,7 @@ let string_of_op = function
   | Or -> "||"
   | Mult -> "*"
   | Div -> "/"
+  | Vbar -> "|"
 
 let rec string_of_expr = function
   Zero -> "0"

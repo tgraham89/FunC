@@ -18,6 +18,7 @@ let stringlit = '"'((ascii|escape)* as lxm)'"'
 rule token = parse
   [' ' '\t' '\r' '\n'] { token lexbuf } (* Whitespace *)
 | "/*"     { comment lexbuf }           (* Comments *)
+| '|'      { VBAR }
 | '('      { LPAREN }
 | ')'      { RPAREN }
 | '{'      { LBRACE }
@@ -61,6 +62,7 @@ rule token = parse
 | "false"  { BLIT(false) }
 | "function" { FUNC }
 | "->"       { OUTPUT }
+| ":"       { COLON }
 | "=>"     { FUNCARROW }
 | "list"    { LIST }
 | "struct"  { STRUCT }

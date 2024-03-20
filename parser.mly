@@ -8,8 +8,8 @@ open Ast
 %token PLUS MINUS DIVIDE TIMES MOD
 %token PPLUS MMINUS
 %token PLUSEQ MINUSEQ
-%token LBRACK RBRACK LT GT LEQ GEQ
-%token EQ NEQ AND OR NOT
+%token LBRACK RBRACK LT GT LEQ GEQ VBAR
+%token EQ NEQ AND OR NOT COLON
 %token IF ELSE WHILE FOR
 %token INT BOOL FLOAT CHAR VOID STRING
 %token FUNC OUTPUT LIST STRUCT LAMBDA FUNCARROW
@@ -40,7 +40,6 @@ program_rule:
 
 typ_list_rule:
   /* nothing */                   { [] }
-  // | typ_rule COMMA typ_rule       { $1 :: $3 }
   | typ_rule COMMA typ_list_rule  { $1 :: $3 }
 
 bind_list_rule:
@@ -48,11 +47,12 @@ bind_list_rule:
   | bind_rule bind_list_rule    { $1 :: $2 }
 
 stmt_list_rule:
-    /* nothing */               { []     }
-    | stmt_rule stmt_list_rule  { $1::$2 }
+    stmt_rule                   { [$1]     }
+    // /* nothing */               { []  }
+    | stmt_list_rule stmt_rule  { $2 :: $1 }
 
 expr_list_rule:
-  /* nothing */                       { [] }
+  expr_rule                           { [$1] }
   | expr_rule COMMA expr_list_rule    { $1 :: $3 }
 
 typ_rule:
@@ -65,19 +65,20 @@ typ_rule:
   | LIST typ_rule                             { List $2 }
   | STRUCT ID LBRACE bind_list_rule RBRACE    { StructSig($2, $4) }
   | FUNC LT typ_list_rule GT OUTPUT typ_rule  { FunSig($3, $6) }
+  | LAMBDA LT typ_list_rule GT OUTPUT typ_rule { FunSig($3, $6) }
 
 bind_rule:
   typ_rule ID ASSIGN expr_rule   { Defn($1, $2, $4) }
   | typ_rule ID                  { Decl($1, $2) }
+  | typ_rule COLON expr_rule     { Defn($1, "anon", $3) }
 
 stmt_rule:
-  | expr_rule SEMI                                                      { Expr $1                }
+  expr_rule SEMI                                                        { Expr $1                }
   | bind_rule SEMI                                                      { Bind $1                }
   | LBRACE stmt_list_rule RBRACE                                        { Block $2               }
   | IF LPAREN expr_rule RPAREN stmt_rule ELSE stmt_rule                 { If ($3, $5, $7)        }
   | WHILE LPAREN expr_rule RPAREN stmt_rule                             { While ($3, $5)         }
   | FOR LPAREN bind_rule SEMI expr_rule SEMI expr_rule RPAREN stmt_rule { For ($3, $5, $7, $9)   }
-
 
 expr_rule:
   | BLIT                          { BoolLit $1            }
@@ -87,6 +88,8 @@ expr_rule:
   | LITERAL                       { Literal $1 }
   | LBRACK expr_list_rule RBRACK  { ListLit($2) }
   | ID                            { Id $1 }
+  | PLUS LITERAL                  { Literal $2 }
+  | MINUS LITERAL                 { Binop(Zero, Sub, Literal($2)) }
   | expr_rule PLUS expr_rule      { Binop ($1, Add, $3) }
   | expr_rule MINUS expr_rule     { Binop ($1, Sub, $3) }
   | expr_rule TIMES expr_rule     { Binop ($1, Mult, $3) }
@@ -97,9 +100,7 @@ expr_rule:
   | expr_rule GT expr_rule        { Binop ($1, Greater, $3) }
   | expr_rule AND expr_rule       { Binop ($1, And, $3) }
   | expr_rule OR expr_rule        { Binop ($1, Or, $3) }
-  | PLUS expr_rule                { $2 }
-  | MINUS expr_rule               { Binop(Zero, Sub, $2) }
   | ID ASSIGN expr_rule           { Assign ($1, $3) }
-  | LPAREN bind_list_rule RPAREN FUNCARROW stmt_list_rule { Function($2, $5) }        
+  | LPAREN bind_list_rule RPAREN FUNCARROW LBRACE stmt_list_rule RBRACE { Function($2, $6) }        
   | LPAREN expr_rule RPAREN       { $2 }
-  | LT expr_list_rule GT  { Struct($2) }
+  | VBAR expr_list_rule VBAR  { Struct($2) }
