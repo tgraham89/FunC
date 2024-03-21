@@ -3,11 +3,15 @@ type bop = Add
           | Equal 
           | Neq 
           | Less 
+          | Lequal
           | And 
           | Or 
+          | Not
           | Greater
+          | Gequal
           | Mult
           | Div
+          | Mod
           | Vbar
 type expr =
   Literal of int
@@ -57,11 +61,15 @@ let string_of_op = function
   | Equal -> "=="
   | Neq -> "!="
   | Less -> "<"
+  | Lequal -> "<="
   | Greater -> ">"
+  | Gequal -> ">="
   | And -> "&&"
   | Or -> "||"
+  | Not -> "!"
   | Mult -> "*"
   | Div -> "/"
+  | Mod -> "%"
   | Vbar -> "|"
 
 let rec string_of_expr = function
