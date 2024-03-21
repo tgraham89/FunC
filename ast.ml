@@ -21,6 +21,7 @@ type expr =
   | ListLit of expr list
   | Struct of expr list
   | Function of bind list * stmt list
+  | FuncInvoc of string * expr list
   | Zero
 and
 bind = Decl of typ * string 
@@ -77,6 +78,7 @@ let rec string_of_expr = function
   | Binop(e1, o, e2) -> string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Assign(v, e) -> v ^ " = " ^ string_of_expr e
   | Function(args, body) -> "(" ^ string_of_bind_list ", " args ^ ") {\n\t" ^ string_of_stmt_list ";\n\t" body ^ "}"
+  | FuncInvoc(id, args) -> id ^ "(" ^ string_of_expr_list ", " args ^ ")"
 and
 string_of_expr_list delim = function
   [] -> ""
