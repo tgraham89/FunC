@@ -28,10 +28,11 @@ open Ast
 %right ASSIGN STRUCT
 %left OR
 %left AND
+%left NOT
 %left EQ NEQ
-%left LT GT
+%left LT GT LEQ GEQ
 %left PLUS MINUS
-%left TIMES DIVIDE
+%left TIMES DIVIDE MOD
 
 %%
 
@@ -94,12 +95,16 @@ expr_rule:
   | expr_rule MINUS expr_rule     { Binop ($1, Sub, $3) }
   | expr_rule TIMES expr_rule     { Binop ($1, Mult, $3) }
   | expr_rule DIVIDE expr_rule    { Binop ($1, Div, $3) }
+  | expr_rule MOD expr_rule       { Binop ($1, Mod, $3) }
   | expr_rule EQ expr_rule        { Binop ($1, Equal, $3) }
   | expr_rule NEQ expr_rule       { Binop ($1, Neq, $3) }
   | expr_rule LT expr_rule        { Binop ($1, Less, $3) }
+  | expr_rule LEQ expr_rule       { Binop ($1, Lequal, $3) }
   | expr_rule GT expr_rule        { Binop ($1, Greater, $3) }
+  | expr_rule GEQ expr_rule       { Binop ($1, Gequal, $3) }
   | expr_rule AND expr_rule       { Binop ($1, And, $3) }
   | expr_rule OR expr_rule        { Binop ($1, Or, $3) }
+  | expr_rule NOT expr_rule        { Binop ($1, Not, $3) }
   | ID ASSIGN expr_rule           { Assign ($1, $3) }
   | LPAREN bind_list_rule RPAREN FUNCARROW LBRACE stmt_list_rule RBRACE { Function($2, $6) }        
   | LPAREN expr_rule RPAREN       { $2 }
