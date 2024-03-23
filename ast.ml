@@ -130,4 +130,3 @@ let string_of_program fdecl =
   String.concat "" (List.map string_of_stmt fdecl.body) ^
   "\n"
 
-  
