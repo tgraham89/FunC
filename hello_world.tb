@@ -1,0 +1,3 @@
+function<> -> int main = () => {
+    print("hello, world");
+};

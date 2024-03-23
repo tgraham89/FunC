@@ -77,7 +77,7 @@ let rec string_of_expr = function
   | Literal(l) -> string_of_int l
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
-  | StrLit(s) -> s
+  | StrLit(s) -> "\"" ^ s ^ "\""
   | ChrLit(c) -> String.make 1 c
   | FloatLit(f) -> string_of_float f
   | ListLit(lst) -> "[" ^ string_of_expr_list ", " lst ^ "]" 
@@ -119,7 +119,7 @@ string_of_stmt = function
   Block(stmts) -> "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
   | Expr(expr) -> string_of_expr expr ^ ";\n";
   | If(e, s1, s2) -> "if (" ^ string_of_expr e ^ ")\n" ^ string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
-  | Bind(bnd) -> string_of_bind bnd
+  | Bind(bnd) -> string_of_bind bnd ^ ";\n"
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
   | For(i, e1, e2, s) -> "for (" ^ string_of_bind i ^ " " ^ string_of_expr e1 ^ " " ^ string_of_expr e2 ^ ")" ^ string_of_stmt s
 and string_of_stmt_list delim = function
@@ -129,3 +129,5 @@ let string_of_program fdecl =
   "\n\nParsed program: \n\n" ^
   String.concat "" (List.map string_of_stmt fdecl.body) ^
   "\n"
+
+  
