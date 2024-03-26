@@ -25,27 +25,32 @@ and sstmt =
   | SIf of sexpr * sstmt * sstmt
   | SWhile of sexpr * sstmt
   | SFor of sbind * sexpr * sexpr * sstmt
-
+and program = {
+  sbody: sstmt list;
+}
 
 
 
 (* Pretty-printing functions *)
 
-let rec string_of_sexpr = function
-  | SBoolLit(true) -> "true"
-  | SBoolLit(false) -> "false"
-  | SStrLit(s1) -> s1
-  | SChrLit(c1) -> c1
-  | SFloatLit(f1) -> string_of_float f1
-  | SId(i1) -> i1
-  | SBinop(l1, o1, r1) -> string_of_sexpr l1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr r1
-  | SAssign(sa1, sa2) -> sa1 ^ "=" ^ string_of_sexpr sa2
-  (* | SListLit() ->  "listlit"
-  | SStruct -> "struct"
-  | SFunction -> "func"
-  | SFuncInvoc -> "funcInvoc" *)
-  | SZero -> "0"
-  | _ -> "string_of_sexpr not implemented yet"
+let rec string_of_sexpr (t, e) = 
+  "(" ^ string_of_typ t ^ " : " ^ (match e with
+    SZero -> "0"
+    | SLiteral(l) -> string_of_int l
+    | SBoolLit(true) -> "true"
+    | SBoolLit(false) -> "false"
+    | SStrLit(s) -> "\"" ^ s ^ "\""
+    | SChrLit(c) -> String.make 1 c
+    | SFloatLit(f) -> string_of_float f
+    (* | SListLit(lst) -> "[" ^ string_of_sexpr_list ", " lst ^ "]"  *)
+    (* | SStruct(lst) -> "{" ^ string_of_sexpr_list ", " lst ^ "}"  *)
+    | SId(s) -> s
+    | SBinop(e1, o, e2) -> string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
+    | SAssign(v, e) -> v ^ " = " ^ string_of_sexpr e
+    (* | SFunction(args, body) -> "(" ^ string_of_sbind_list ", " args ^ ") {\n\t" ^ string_of_sstmt_list ";\n\t" body ^ "}" *)
+    (* | SFuncInvoc(id, args) -> id ^ "(" ^ string_of_sexpr_list ", " args ^ ")" *)
+    | _ -> "string_of_sexpr not implemented yet"
+    ) ^ ")"
 
   (* todo need to add the other sexpr's *)
 
@@ -61,5 +66,7 @@ let rec string_of_sexpr = function
   | SWhile(cond, stmt) -> "while (" ^ string_of_sexpr cond ^ ")\n" ^ string_of_sstmt stmt
   | SFor(init, cond, incr, stmt) -> "for (" ^ string_of_sbind init ^ "; " ^ string_of_sexpr cond ^ "; " ^ string_of_sexpr incr ^ ")\n" ^ string_of_sstmt stmt
 
-let string_of_sprogram prog =
-  String.concat "\n" (List.map string_of_sstmt prog.sbody)
+  let string_of_sprogram fdecl =
+    "\n\nSementically checked program: \n\n" ^
+    String.concat "" (List.map string_of_sstmt fdecl.sbody) ^
+    "\n"
