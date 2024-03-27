@@ -13,44 +13,69 @@ module StringMap = Map.Make(String)
 let check (program) =
 
   let check_program program =
-    let check_expr = function
-          Literal l -> (Int, SLiteral l)
-        | BoolLit l -> (Bool, SBoolLit l)
-        | StrLit l -> (String, SStrLit l)
 
-    in
+    let rec check_expr symbols = function
+          Literal l -> (symbols, Int, SLiteral l)
+        | BoolLit l -> (symbols, Bool, SBoolLit l)
+        | StrLit l -> (symbols, String, SStrLit l)
+        | Assign(var, e) as ex ->
+          let lt = type_of_identifier symbols var
+          and (symbols, rt, e') = check_expr symbols e in
+          let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^
+                    string_of_typ rt ^ " in " ^ string_of_expr ex
+          in
+          check_assign symbols lt rt err;
+          (symbols, lt, SAssign(var, (rt, e')))
 
-    let check_assign lvaluet rvaluet err =
+    and type_of_identifier symbols s =
+      try StringMap.find s symbols
+      with Not_found -> raise (Failure ("undeclared identifier " ^ s))
+
+    and check_assign symbols lvaluet rvaluet err =
       if lvaluet = rvaluet then () else raise (Failure err)
-    in
-    let check_defn t id value =
-        let (rt, e') = check_expr value in
-        let err = "illegal assignment " ^ string_of_typ t ^ " = " ^
-                  string_of_typ rt ^ " in " ^ string_of_bind (Defn(t, id, value))
-        in
-        check_assign t rt err;
-        SDefn(t, id, (rt, e'))
+
+    and check_defn symbols t id value =
+      let (symbols, rt, e') = check_expr symbols value in
+      let err = "illegal assignment " ^ string_of_typ t ^ " = " ^
+                string_of_typ rt ^ " in " ^ string_of_bind (Defn(t, id, value))
+      in
+      check_assign symbols t rt err;
+      let symbols = StringMap.add id t symbols in
+      (symbols, SDefn(t, id, (rt, e')))
+
+    and check_decl symbols t id =
+      let symbols = StringMap.add id t symbols in
+      (symbols, SDecl(t, id))
+
+    and check_bind symbols = function
+      Decl(t, id) -> check_decl symbols t id
+      | Defn(t, id, value) -> check_defn symbols t id value
+
+    and check_stmt_list symbols = function
+      | [] -> (symbols, []) 
+      | s :: sl ->
+          (* Reverse the order because parser returns reversed statment list *)
+          let (symbols, sl_checked) = check_stmt_list symbols sl in
+          let (symbols, s_checked) = check_stmt symbols s in
+          (symbols, sl_checked @ [s_checked])
+      (* TODO figure out how to do Block *)
+
+    and check_stmt symbols = function
+      Block sl -> 
+          let (symbols, sl_checked) = check_stmt_list symbols sl in
+          (symbols, SBlock sl_checked)
+      | Expr e -> 
+          let (symbols, t, e_checked) = check_expr symbols e in
+          (symbols, SExpr(t, e_checked))
+      | Bind b -> 
+          let (symbols, b_checked) = check_bind symbols b in
+          (symbols, SBind b_checked)
+
     in
 
-    let rec check_bind = function
-          Decl(typ, name) -> SDecl(typ, name)
-          | Defn(t, id, value) -> check_defn t id value
-    in
-
-    let rec check_stmt_list = function
-          [] -> []
-        | Block sl :: sl'  -> check_stmt_list (sl @ sl') (* Flatten blocks *)
-        | s :: sl -> check_stmt s :: check_stmt_list sl
-
-    and check_stmt = function
-      (* A block is correct if each statement is correct and nothing
-          follows any Return statement.  Nested blocks are flattened. *)
-      Block sl -> SBlock (check_stmt_list sl)
-      | Expr e -> SExpr (check_expr e)
-      | Bind b -> SBind (check_bind b)
-    in
+    let (symbols, sbody_checked) = check_stmt_list StringMap.empty program.body in
     {
-      sbody = check_stmt_list program.body
+      sbody = sbody_checked
     }
 in
 (check_program program)
