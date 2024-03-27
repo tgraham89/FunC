@@ -24,14 +24,14 @@ let check (program) =
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^
                     string_of_typ rt ^ " in " ^ string_of_expr ex
           in
-          check_assign symbols lt rt err;
+          check_assign lt rt err;
           (symbols, lt, SAssign(var, (rt, e')))
 
     and type_of_identifier symbols s =
       try StringMap.find s symbols
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
 
-    and check_assign symbols lvaluet rvaluet err =
+    and check_assign lvaluet rvaluet err =
       if lvaluet = rvaluet then () else raise (Failure err)
 
     and check_defn symbols t id value =
@@ -39,7 +39,7 @@ let check (program) =
       let err = "illegal assignment " ^ string_of_typ t ^ " = " ^
                 string_of_typ rt ^ " in " ^ string_of_bind (Defn(t, id, value))
       in
-      check_assign symbols t rt err;
+      check_assign t rt err;
       let symbols = StringMap.add id t symbols in
       (symbols, SDefn(t, id, (rt, e')))
 
