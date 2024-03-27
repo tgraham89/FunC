@@ -90,6 +90,7 @@ let rec string_of_expr = function
 and
 string_of_expr_list delim = function
   [] -> ""
+  | x :: [] -> string_of_expr x
   | x :: rest -> string_of_expr x ^ delim ^ string_of_expr_list delim rest
 and
 string_of_typ = function
@@ -105,6 +106,7 @@ string_of_typ = function
 and
 string_of_typ_list delim = function
   [] -> ""
+  | x :: [] -> string_of_typ x
   | x :: rest -> string_of_typ x ^ delim ^ string_of_typ_list delim rest
 and
 string_of_bind = function

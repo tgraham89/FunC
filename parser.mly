@@ -41,11 +41,13 @@ program_rule:
 
 typ_list_rule:
   /* nothing */                   { [] }
+  | typ_rule                   { [$1] }
   | typ_rule COMMA typ_list_rule  { $1 :: $3 }
 
 bind_list_rule:
   /* nothing */                 { [] }
-  | bind_rule bind_list_rule    { $1 :: $2 }
+  | bind_rule                   { [$1] }
+  | bind_rule COMMA bind_list_rule    { $1 :: $3 }
 
 stmt_list_rule:
     stmt_rule                   { [$1]     }
