@@ -37,6 +37,11 @@ let check (program) =
           | Defn(t, id, value) -> check_defn t id value
     in
 
+    let rec check_bind_list = function
+        [] -> []
+      | bnd :: rest -> check_bind bnd :: check_bind_list rest
+    in
+
     let rec check_stmt_list = function
           [] -> []
         | Block sl :: sl'  -> check_stmt_list (sl @ sl') (* Flatten blocks *)
@@ -47,6 +52,7 @@ let check (program) =
           follows any Return statement.  Nested blocks are flattened. *)
       Block sl -> SBlock (check_stmt_list sl)
       | Expr e -> SExpr (check_expr e)
+      | Return e -> SExpr (check_expr e)
       | Bind b -> SBind (check_bind b)
     in
     {

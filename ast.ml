@@ -45,6 +45,7 @@ and
 stmt =
   | Block of stmt list
   | Expr of expr
+  | Return of expr
   | Bind of bind 
   | If of expr * stmt * stmt
   | While of expr * stmt
@@ -120,6 +121,7 @@ and
 string_of_stmt = function
   Block(stmts) -> "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
   | Expr(expr) -> string_of_expr expr ^ ";\n";
+  | Return(expr) -> "return " ^ string_of_expr expr ^ ";\n";
   | If(e, s1, s2) -> "if (" ^ string_of_expr e ^ ")\n" ^ string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
   | Bind(bnd) -> string_of_bind bnd ^ ";\n"
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s

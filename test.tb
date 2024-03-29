@@ -1,4 +1,6 @@
 string s = "hello";
 string t = "world";
 
-function<int,> -> void x;
+function <int> -> int f = (int x) => {
+    return x + 5;
+};

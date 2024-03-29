@@ -82,6 +82,7 @@ stmt_rule:
   | LBRACE stmt_list_rule RBRACE                                        { Block $2               }
   | IF LPAREN expr_rule RPAREN stmt_rule ELSE stmt_rule                 { If ($3, $5, $7)        }
   | WHILE LPAREN expr_rule RPAREN stmt_rule                             { While ($3, $5)         }
+  | RETURN expr_rule SEMI  { Return $2 }
   | FOR LPAREN bind_rule SEMI expr_rule SEMI expr_rule RPAREN stmt_rule { For ($3, $5, $7, $9)   }
 
 expr_rule:
