@@ -67,5 +67,5 @@ let rec string_of_sexpr (t, e) =
 
   let string_of_sprogram fdecl =
     "\n\nSementically checked program: \n\n" ^
-    String.concat "" (List.map string_of_sstmt fdecl.sbody) ^
+    String.concat "\n" (List.map string_of_sstmt fdecl.sbody) ^
     "\n"
