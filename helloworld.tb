@@ -1,9 +1,0 @@
-
-string h = "hello world";
-
-
-function<int> -> void hello_world = (x) {
-    string h = "hello world";
-    print(h);
-    return 0;
-}
