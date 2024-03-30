@@ -164,4 +164,4 @@ let run_tests () =
 (* Execute test suite for ast.ml *)
 let () =
   run_tests ();
-  print_endline "ast_test.ml passed"
+  print_endline "test_ast.ml passed"
