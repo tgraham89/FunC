@@ -52,7 +52,7 @@ bind_list_rule:
 stmt_list_rule:
     stmt_rule                   { [$1]     }
     // /* nothing */               { []  }
-    | stmt_list_rule stmt_rule  { $2 :: $1 }
+    | stmt_list_rule stmt_rule  { $1 @ [$2] }
 
 expr_list_rule:
   // /* nothing */                       { [] }
@@ -83,7 +83,7 @@ stmt_rule:
   | IF LPAREN expr_rule RPAREN stmt_rule ELSE stmt_rule                 { If ($3, $5, $7)        }
   | WHILE LPAREN expr_rule RPAREN stmt_rule                             { While ($3, $5)         }
   | FOR LPAREN bind_rule SEMI expr_rule SEMI expr_rule RPAREN stmt_rule { For ($3, $5, $7, $9)   }
-  | RETURN expr_rule SEMI                                                    { Return $2              }
+  | RETURN expr_rule SEMI                                               { Return $2              }
 
 expr_rule:
   | BLIT                          { BoolLit $1            }

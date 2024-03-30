@@ -86,7 +86,7 @@ let rec string_of_expr = function
   | Id(s) -> "\"" ^ s ^ "\""
   | Binop(e1, o, e2) -> string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Assign(v, e) -> v ^ " = " ^ string_of_expr e
-  | Function(args, body) -> "(" ^ string_of_bind_list ", " args ^ ") {\n\t" ^ string_of_stmt_list ";\n\t" body ^ "}"
+  | Function(args, body) -> "(" ^ string_of_bind_list ", " args ^ ") {\n" ^ string_of_stmt_list "" body ^ "}"
   | FuncInvoc(id, args) -> id ^ "(" ^ string_of_expr_list ", " args ^ ")"
 and
 string_of_expr_list delim = function
