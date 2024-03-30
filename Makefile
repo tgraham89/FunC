@@ -1,4 +1,4 @@
-build: scanner parser
+build: clean setup scanner parser test
 
 setup:
 	@if ! opam switch list | grep -q '5.1.1'; then \
@@ -20,10 +20,25 @@ parser: parser.mly
 test2:
 	ocamlbuild test2.native
 
-.PHONY: clean
+
+
+
+.PHONY: clean test
 clean:
 	rm -f parser.ml
 	rm -f parser.mli
 	rm -f parser.output
 	rm -f scanner.native
 	rm -rf _build
+	rm -f ast.cmi
+	rm -f ast.cmo
+	rm -f ast_test.cmi
+	rm -f ast_test.cmo
+	rm -f ./test/*.cmi
+	rm -f ./test/*.cmo
+	rm -f ./test/*.native
+	rm -f ./test/*.out
+
+test:
+	ocamlc -o ./test/test_ast.native ast.ml ./test/test_ast.ml
+	./test/test_ast.native > ./test/test_ast.out
