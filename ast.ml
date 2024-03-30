@@ -29,7 +29,7 @@ type expr =
   | Zero
 and
 bind = Decl of typ * string 
-            | Defn of typ * string * expr
+       | Defn of typ * string * expr
 and
 typ = 
   Int 
@@ -82,7 +82,7 @@ let rec string_of_expr = function
   | FloatLit(f) -> string_of_float f
   | ListLit(lst) -> "[" ^ string_of_expr_list ", " lst ^ "]" 
   | Struct(lst) -> "{" ^ string_of_expr_list ", " lst ^ "}" 
-  | Id(s) -> s
+  | Id(s) -> "\"" ^ s ^ "\""
   | Binop(e1, o, e2) -> string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Assign(v, e) -> v ^ " = " ^ string_of_expr e
   | Function(args, body) -> "(" ^ string_of_bind_list ", " args ^ ") {\n\t" ^ string_of_stmt_list ";\n\t" body ^ "}"
@@ -101,7 +101,7 @@ string_of_typ = function
   | Void -> "void"
   | Float -> "float"
   | List t -> "list<" ^ (string_of_typ t) ^ ">"
-  | StructSig (name, fields) -> "struct " ^ name ^ " {\n" ^ string_of_bind_list ";\n" fields ^ "}\n"
+  | StructSig (name, fields) -> "struct " ^ name ^ " {\n" ^ string_of_bind_list ";\n" fields ^ "}"
   | FunSig (args, ret) -> "function<" ^ string_of_typ_list ", " args ^ "> -> " ^ string_of_typ ret 
 and
 string_of_typ_list delim = function
@@ -123,7 +123,7 @@ string_of_stmt = function
   | If(e, s1, s2) -> "if (" ^ string_of_expr e ^ ")\n" ^ string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
   | Bind(bnd) -> string_of_bind bnd ^ ";\n"
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
-  | For(i, e1, e2, s) -> "for (" ^ string_of_bind i ^ " " ^ string_of_expr e1 ^ " " ^ string_of_expr e2 ^ ")" ^ string_of_stmt s
+  | For(i, e1, e2, s) -> "for (" ^ string_of_bind i ^ "; " ^ string_of_expr e1 ^ "; " ^ string_of_expr e2 ^ ") {\n" ^ string_of_stmt s ^ "}"
 and string_of_stmt_list delim = function
   [] -> ""
   | x :: rest -> delim ^ string_of_stmt x ^ string_of_stmt_list delim rest
