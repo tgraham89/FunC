@@ -49,6 +49,7 @@ stmt =
   | If of expr * stmt * stmt
   | While of expr * stmt
   | For of bind * expr * expr * stmt
+  | Return of expr
 and
 program = {
   body: stmt list;
@@ -124,6 +125,7 @@ string_of_stmt = function
   | Bind(bnd) -> string_of_bind bnd ^ ";\n"
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
   | For(i, e1, e2, s) -> "for (" ^ string_of_bind i ^ "; " ^ string_of_expr e1 ^ "; " ^ string_of_expr e2 ^ ") {\n" ^ string_of_stmt s ^ "}"
+  | Return(expr) -> "return " ^ string_of_expr expr ^ ";\n"
 and string_of_stmt_list delim = function
   [] -> ""
   | x :: rest -> delim ^ string_of_stmt x ^ string_of_stmt_list delim rest
