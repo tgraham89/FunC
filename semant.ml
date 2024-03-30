@@ -54,10 +54,9 @@ let check (program) =
     and check_stmt_list symbols = function
       | [] -> (symbols, []) 
       | s :: sl ->
-          (* Reverse the order because parser returns reversed statment list *)
-          let (symbols, sl_checked) = check_stmt_list symbols sl in
           let (symbols, s_checked) = check_stmt symbols s in
-          (symbols, sl_checked @ [s_checked])
+          let (symbols, sl_checked) = check_stmt_list symbols sl in
+          (symbols, s_checked :: sl_checked)
       (* TODO figure out how to do Block *)
 
     and check_stmt symbols = function
