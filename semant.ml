@@ -19,6 +19,16 @@ let check (program) =
         | BoolLit l -> (symbols, Bool, SBoolLit l)
         | FloatLit l -> (symbols, Float, SFloatLit l)
         | StrLit l -> (symbols, String, SStrLit l)
+        | ChrLit ch -> (symbols, Char, SChrLit ch)
+        | ListLit x -> 
+          let rec verify_list = function 
+          [] -> (EmptyList, true) 
+          | x :: [] -> let (_, tyx, _) = check_expr symbols x in (tyx, true) 
+          | x :: rest -> let (_, tyx, _) = check_expr symbols x in (tyx, List.for_all (fun a -> let (_, ca, _) = check_expr symbols a in ca = tyx) rest)
+          in
+          let slist = List.map (fun (_, t, x) -> (t, x)) (List.map (check_expr symbols) x)
+          in
+          let (tylist, valid) = verify_list x in if valid then (symbols, tylist, SListLit(tylist, slist)) else raise (Failure "the types of this list dont match")
         | Assign(var, e) as ex ->
           let lt = type_of_identifier symbols var
           and (symbols, rt, e') = check_expr symbols e in
@@ -115,11 +125,14 @@ let check (program) =
     and check_bind symbols = function
       Decl(t, id) -> check_decl symbols t id
       | Defn(t, id, value) -> check_defn symbols t id value
+
     and check_bind_list symbols lst = List.map snd (List.map (check_bind symbols) lst)
+
     and typ_of_func_body symbols = function
       [] -> Void
       | x :: [] -> begin match x with Return y -> typ_of_expr symbols y | _ -> Void end
       | x :: rest -> typ_of_func_body symbols rest
+
     and check_stmt_list symbols = function
       | [] -> (symbols, []) 
       | s :: sl ->

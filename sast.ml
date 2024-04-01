@@ -10,7 +10,7 @@ and sx =
   | SId of string
   | SBinop of sexpr * bop * sexpr
   | SAssign of string * sexpr
-  | SListLit of sexpr list
+  | SListLit of typ * sexpr list
   | SStruct of sexpr list
   | SFunction of sbind list * sstmt list
   | SFuncInvoc of string * sexpr list
@@ -43,7 +43,7 @@ let rec string_of_sexpr (t, e) =
     | SStrLit(s) -> "\"" ^ s ^ "\""
     | SChrLit(c) -> String.make 1 c
     | SFloatLit(f) -> string_of_float f
-    (* | SListLit(lst) -> "[" ^ string_of_sexpr_list ", " lst ^ "]"  *)
+    | SListLit(ty, lst) -> "( list of " ^ string_of_typ ty ^ ": [" ^ string_of_sexpr_list ", " lst ^ "]" 
     (* | SStruct(lst) -> "{" ^ string_of_sexpr_list ", " lst ^ "}"  *)
     | SId(s) -> s
     | SBinop(e1, o, e2) -> string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
@@ -54,7 +54,8 @@ let rec string_of_sexpr (t, e) =
     ) ^ ")"
 
   (* todo need to add the other sexpr's *)
-
+  and string_of_sexpr_list delim = function
+  [] -> "" | x :: [] -> string_of_sexpr x | x :: rest -> string_of_sexpr x ^ delim ^ string_of_sexpr_list delim rest
   and string_of_sbind = function
   | SDecl(t, id) -> string_of_typ t ^ " " ^ id
   | SDefn(t, id, e) -> string_of_typ t ^ " " ^ id ^ " = " ^ string_of_sexpr e

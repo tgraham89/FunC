@@ -41,6 +41,7 @@ typ =
   | List of typ
   | StructSig of string * bind list
   | FunSig of typ list * typ
+  | EmptyList
 and
 stmt =
   | Block of stmt list
