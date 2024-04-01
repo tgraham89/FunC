@@ -52,14 +52,14 @@ stmt =
   | While of expr * stmt
   | For of bind * expr * expr * stmt
   | Return of expr
-and
+(* and
 func = {
   name : string;
   ret : typ;
   num_args : int;
   args : bind list;
   body : stmt list;
-}
+} *)
 and
 program = {
   body: stmt list;
