@@ -22,7 +22,8 @@ and sstmt =
   | SBlock of sstmt list
   | SExpr of sexpr
   | SBind of sbind
-  | SIf of sexpr * sstmt * sstmt
+  | SIf of sexpr * sstmt
+  | SIfElse of sexpr * sstmt * sstmt
   | SWhile of sexpr * sstmt
   | SFor of sbind * sexpr * sexpr * sstmt
 and program = {
@@ -61,7 +62,8 @@ let rec string_of_sexpr (t, e) =
   | SBlock(stmts) -> "{\n" ^ String.concat "\n" (List.map string_of_sstmt stmts) ^ "\n}"
   | SExpr(expr) -> string_of_sexpr expr ^ ";\n"
   | SBind(bind) -> string_of_sbind bind ^ ";\n"
-  | SIf(cond, then_stmt, else_stmt) -> "if (" ^ string_of_sexpr cond ^ ")\n" ^ string_of_sstmt then_stmt ^ "else\n" ^ string_of_sstmt else_stmt
+  | SIf(cond, branch) -> "if (" ^ string_of_sexpr cond ^ ")\n" ^ string_of_sstmt branch
+  | SIfElse(cond, then_stmt, else_stmt) -> "if (" ^ string_of_sexpr cond ^ ")\n" ^ string_of_sstmt then_stmt ^ "else\n" ^ string_of_sstmt else_stmt
   | SWhile(cond, stmt) -> "while (" ^ string_of_sexpr cond ^ ")\n" ^ string_of_sstmt stmt
   | SFor(init, cond, incr, stmt) -> "for (" ^ string_of_sbind init ^ "; " ^ string_of_sexpr cond ^ "; " ^ string_of_sexpr incr ^ ")\n" ^ string_of_sstmt stmt
 

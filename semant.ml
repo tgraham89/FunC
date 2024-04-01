@@ -26,6 +26,27 @@ let check (program) =
           in
           check_assign lt rt err;
           (symbols, lt, SAssign(var, (rt, e')))
+        | Id id -> (symbols, type_of_identifier symbols id, SId id)
+        | Binop (lhs, op, rhs) -> let (_, t1, slhs) = check_expr symbols lhs and (_, t2, srhs) = check_expr symbols rhs in
+          match (op, t1, t2) with
+              (_, t1, t2) when t1 != t2 -> raise (Failure "mismatched types")
+            | (Add, t1, t2) when t1 != Int && t1 != Float -> raise (Failure "can't add non-numeric things")
+            | (Sub, t1, t2) when t1 != Int && t1 != Float -> raise (Failure "can't subtract non-numeric things")
+            | (Mult, t1, t2) when t1 != Int && t1 != Float -> raise (Failure "can't multiply non-numeric things")
+            | (Div, t1, t2) when t1 != Int && t1 != Float -> raise (Failure "can't divide non-numeric things")
+            | (Mod, t1, t2) when t1 != Int && t1 != Float -> raise (Failure "can't mod non-numeric things")
+            | (Or, t1, t2) when t1 != Bool -> raise (Failure "Or only accepts booleans")
+            | (And, t1, t2) when t1 != Bool -> raise (Failure "Or only accepts booleans")
+            | (Sub, t1, t2) -> (symbols, t1, SBinop ((t1, slhs), op, (t2, srhs))) 
+            | (Mult, t1, t2) -> (symbols, t1, SBinop ((t1, slhs), op, (t2, srhs))) 
+            | (Div, t1, t2) -> (symbols, t1, SBinop ((t1, slhs), op, (t2, srhs))) 
+            | (Mod, t1, t2) -> (symbols, t1, SBinop ((t1, slhs), op, (t2, srhs))) 
+            | (Or, t1, t2) -> (symbols, Bool, SBinop ((t1, slhs), op, (t2, srhs))) 
+            | (And, t1, t2) -> (symbols, Bool, SBinop ((t1, slhs), op, (t2, srhs)))
+            | (Greater, t1, t2) -> (symbols, Bool, SBinop ((t1, slhs), op, (t2, srhs)))
+            | (Gequal, t1, t2) -> (symbols, Bool, SBinop ((t1, slhs), op, (t2, srhs)))
+            | (Less, t1, t2) -> (symbols, Bool, SBinop ((t1, slhs), op, (t2, srhs)))
+            | (Lequal, t1, t2) -> (symbols, Bool, SBinop ((t1, slhs), op, (t2, srhs)))
 
     and type_of_identifier symbols s =
       try StringMap.find s symbols
@@ -66,39 +87,31 @@ let check (program) =
       | Expr e -> 
           let (symbols, t, e_checked) = check_expr symbols e in
           (symbols, SExpr(t, e_checked))
-      | Bind b -> 
+      | Bind b ->
           let (symbols, b_checked) = check_bind symbols b in
           (symbols, SBind b_checked)
-
+      | If (cond, br) -> let (_, t, scond) = check_expr symbols cond in
+        if t = Bool then let (_, sbr) = check_stmt symbols br in (symbols, SIf((t, scond), sbr))
+        else raise (Failure "condition must be a boolean")
+      | IfElse (cond, br1, br2) -> let (_, t, scond) = check_expr symbols cond in
+        if t = Bool then let (_, sbr1) = check_stmt symbols br1 and (_, sbr2) = check_stmt symbols br2 in
+          (symbols, SIfElse ((t, scond), sbr1, sbr2)) else
+        raise (Failure "condition must be a boolean")
+      | While (cond, stmts) -> let (_, t, scond) = check_expr symbols cond in
+          if t != Bool then raise (Failure "condition must be a boolean")
+          else let (_, sstmts) = check_stmt symbols stmts in
+          (symbols, SWhile ((t, scond), sstmts))
+      | For (counter, cond, increment, stmts) -> let (_, t, scond) = check_expr symbols cond in
+        if t != Bool then raise (Failure "condition must be a boolean")
+        else
+          let (_, sbind) = check_bind symbols counter and
+              (_, t1, scond) = check_expr symbols cond and
+              (_, t2, sinc) = check_expr symbols increment and
+              (_, sstmts) = check_stmt symbols stmts in
+              (symbols, SFor(sbind, (t1, scond), (t2, sinc), sstmts)) 
+      | _ -> raise (Failure "uhh")
     in
-
-<<<<<<< HEAD
-    let rec check_bind = function
-          Decl(typ, name) -> SDecl(typ, name)
-          | Defn(t, id, value) -> check_defn t id value
-    in
-
-    let rec check_bind_list = function
-        [] -> []
-      | bnd :: rest -> check_bind bnd :: check_bind_list rest
-    in
-
-    let rec check_stmt_list = function
-          [] -> []
-        | Block sl :: sl'  -> check_stmt_list (sl @ sl') (* Flatten blocks *)
-        | s :: sl -> check_stmt s :: check_stmt_list sl
-
-    and check_stmt = function
-      (* A block is correct if each statement is correct and nothing
-          follows any Return statement.  Nested blocks are flattened. *)
-      Block sl -> SBlock (check_stmt_list sl)
-      | Expr e -> SExpr (check_expr e)
-      | Return e -> SExpr (check_expr e)
-      | Bind b -> SBind (check_bind b)
-    in
-=======
     let (symbols, sbody_checked) = check_stmt_list StringMap.empty program.body in
->>>>>>> 1f91c3545d4e5d3ef0311b342af6b22bee98a3f7
     {
       sbody = sbody_checked
     }
