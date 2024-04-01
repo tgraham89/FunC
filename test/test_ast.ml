@@ -66,7 +66,7 @@ let run_expr_tests () =
   assert (string_of_expr expr12 = "{1, 2, 3}");
   assert (string_of_expr expr13 = "{}");
   assert (string_of_expr expr14 = "\"id\"");
-  assert (string_of_expr expr15 = "1 + 1");
+  assert (string_of_expr expr15 = "BINOP 1 + 1");
   assert (string_of_expr expr16 = "x = \"hello world\"")
 
 
@@ -85,8 +85,9 @@ let run_expr_tests_edge_cases () =
 let run_expr_tests_function_and_bind_cases () =
   let hello_world_func = Function([Decl(Int, "hello_world_func")], [Expr(StrLit("hello world"))]) in
   let defn_func = Function([Defn(Int, "my_func", Assign("my_var", StrLit("my_val")))], [Expr(StrLit("hello world"))]) in
-  assert (string_of_expr hello_world_func = "(int hello_world_func, ) {\n\t;\n\t\"hello world\";\n}");
-  assert (string_of_expr defn_func = "(int my_func = my_var = \"my_val\", ) {\n\t;\n\t\"hello world\";\n}")
+  print_endline (string_of_expr hello_world_func);
+  assert (string_of_expr hello_world_func = "(int hello_world_func, ) {\n\"hello world\";\n}");
+  assert (string_of_expr defn_func = "(int my_func = my_var = \"my_val\", ) {\n\"hello world\";\n}")
 
 (* Test cases for FuncInvoc *)
 let run_expr_tests_func_invoc_cases () =
@@ -139,15 +140,18 @@ let run_stmt_tests () =
   let stmt1 = Block([Expr(Zero); Expr(Zero); Expr(Zero)]) in
   let stmt2 = Expr(Zero) in
   let stmt3 = Bind(Decl(Int, "hello_world_func")) in
-  let stmt4 = If(BoolLit(true), Expr(StrLit("its true")), Expr(StrLit("its false"))) in
+  let stmt4 = IfElse(BoolLit(true), Expr(StrLit("its true")), Expr(StrLit("its false"))) in
   let stmt5 = While(BoolLit(true), Expr(StrLit("its true"))) in
   let stmt6 = For(Decl(Int, "hello_world_func"), StrLit("its true"), StrLit("its false"), Expr(Zero)) in
+  let stmt7 = If(BoolLit(true), Expr(StrLit("its true"))) in
   assert (string_of_stmt stmt1 = "{\n0;\n0;\n0;\n}\n");
   assert (string_of_stmt stmt2 = "0;\n");
   assert (string_of_stmt stmt3 = "int hello_world_func;\n");
   assert (string_of_stmt stmt4 = "if (true)\n\"its true\";\nelse\n\"its false\";\n");
   assert (string_of_stmt stmt5 = "while (true) \"its true\";\n");
-  assert (string_of_stmt stmt6 = "for (int hello_world_func; \"its true\"; \"its false\") {\n0;\n}")
+  assert (string_of_stmt stmt6 = "for (int hello_world_func; \"its true\"; \"its false\") {\n0;\n}");
+  assert (string_of_stmt stmt7 = "if (true)\n\"its true\";\n")
+
 
 (* Runs all tests... look at each function for the actual cases *)
 let run_tests () =

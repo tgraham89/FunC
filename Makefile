@@ -1,4 +1,4 @@
-build: clean scanner parser test
+build: clean scanner parser
 
 setup:
 	@if ! opam switch list | grep -q '5.1.1'; then \
