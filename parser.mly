@@ -81,28 +81,23 @@ stmt_rule:
   | closed_stmt                                                         { $1 }
 
 open_stmt:
-  IF LPAREN expr_rule RPAREN stmt_rule                                  { If($3, $5) }
-  | IF LPAREN expr_rule RPAREN closed_stmt ELSE open_stmt               { IfElse($3, $5, $7) }
+  IF LPAREN expr_rule RPAREN closed_stmt                                  { If($3, $5) }
+  | IF LPAREN expr_rule RPAREN open_stmt                                  { If($3, $5) }
+  | IF LPAREN expr_rule RPAREN closed_stmt ELSE open_stmt                 { IfElse($3, $5, $7) }
+  | WHILE LPAREN expr_rule RPAREN open_stmt                               { While ($3, $5)         }
+  | FOR LPAREN bind_rule SEMI expr_rule SEMI expr_rule RPAREN open_stmt   { For ($3, $5, $7, $9)   }
 
 closed_stmt:
-  expr_rule SEMI                                                        { Expr $1                }
-  | bind_rule SEMI                                                      { Bind $1                }
-  | LBRACE stmt_list_rule RBRACE                                        { Block $2               }
-  | WHILE LPAREN expr_rule RPAREN stmt_rule                             { While ($3, $5)         }
-  | FOR LPAREN bind_rule SEMI expr_rule SEMI expr_rule RPAREN stmt_rule { For ($3, $5, $7, $9)   }
-  | RETURN expr_rule SEMI                                               { Return $2              }
-  | IF LPAREN expr_rule RPAREN closed_stmt ELSE closed_stmt             { IfElse ($3, $5, $7)        }
+  simple_stmt                                                             { $1 }
+  | IF LPAREN expr_rule RPAREN closed_stmt ELSE closed_stmt               { IfElse ($3, $5, $7)        }
+  | WHILE LPAREN expr_rule RPAREN closed_stmt                             { While ($3, $5)         }
+  | FOR LPAREN bind_rule SEMI expr_rule SEMI expr_rule RPAREN closed_stmt { For ($3, $5, $7, $9)   }
 
-
-// stmt_rule:
-//   expr_rule SEMI                                                        { Expr $1                }
-//   | bind_rule SEMI                                                      { Bind $1                }
-//   | LBRACE stmt_list_rule RBRACE                                        { Block $2               }
-//   | IF LPAREN expr_rule RPAREN stmt_rule ELSE stmt_rule                 { If ($3, $5, $7)        }
-//   | IF LPAREN expr_rule RPAREN stmt_rule ELSE stmt_rule                 { If ($3, $5, $7)        }
-//   | WHILE LPAREN expr_rule RPAREN stmt_rule                             { While ($3, $5)         }
-//   | FOR LPAREN bind_rule SEMI expr_rule SEMI expr_rule RPAREN stmt_rule { For ($3, $5, $7, $9)   }
-//   | RETURN expr_rule SEMI                                               { Return $2              }
+simple_stmt:
+  expr_rule SEMI                                                          { Expr $1                }
+  | bind_rule SEMI                                                        { Bind $1                }
+  | LBRACE stmt_list_rule RBRACE                                          { Block $2               }
+  | RETURN expr_rule SEMI                                                 { Return $2              }
 
 expr_rule:
   | BLIT                          { BoolLit $1            }
