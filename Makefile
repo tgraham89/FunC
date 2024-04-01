@@ -55,7 +55,18 @@ clean:
 	rm -f ./test/*.out
 	rm -f hello_world.output
 
-.PHONY: test
-test:
+.PHONY: test test_ast test_scanner
+test: test_ast test_scanner
+	
+test_ast:
 	ocamlc -o ./test/test_ast.native ast.ml ./test/test_ast.ml
+	rm -f ./test/test_ast.cmi
+	rm -f ./test/test_ast.cmo
 	./test/test_ast.native > ./test/test_ast.out
+
+test_scanner:
+	rm -f ast.cmi
+	rm -f ast.cmo
+	ocamlbuild ./test/test_scanner.native
+	mv test_scanner.native ./test/
+	./test/test_scanner.native > ./test/test_scanner.out
