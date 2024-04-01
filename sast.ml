@@ -26,6 +26,7 @@ and sstmt =
   | SIfElse of sexpr * sstmt * sstmt
   | SWhile of sexpr * sstmt
   | SFor of sbind * sexpr * sexpr * sstmt
+  | SReturn of sexpr
 and program = {
   sbody: sstmt list;
 }
@@ -66,6 +67,7 @@ let rec string_of_sexpr (t, e) =
   | SIfElse(cond, then_stmt, else_stmt) -> "if (" ^ string_of_sexpr cond ^ ")\n" ^ string_of_sstmt then_stmt ^ "else\n" ^ string_of_sstmt else_stmt
   | SWhile(cond, stmt) -> "while (" ^ string_of_sexpr cond ^ ")\n" ^ string_of_sstmt stmt
   | SFor(init, cond, incr, stmt) -> "for (" ^ string_of_sbind init ^ "; " ^ string_of_sexpr cond ^ "; " ^ string_of_sexpr incr ^ ")\n" ^ string_of_sstmt stmt
+  | SReturn(value) -> "return " ^ string_of_sexpr value
 
   let string_of_sprogram fdecl =
     "\n\nSementically checked program: \n\n" ^

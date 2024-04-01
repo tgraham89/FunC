@@ -17,6 +17,7 @@ let check (program) =
     let rec check_expr symbols = function
           Literal l -> (symbols, Int, SLiteral l)
         | BoolLit l -> (symbols, Bool, SBoolLit l)
+        | FloatLit l -> (symbols, Float, SFloatLit l)
         | StrLit l -> (symbols, String, SStrLit l)
         | Assign(var, e) as ex ->
           let lt = type_of_identifier symbols var
@@ -28,6 +29,7 @@ let check (program) =
           (symbols, lt, SAssign(var, (rt, e')))
         | Id id -> (symbols, type_of_identifier symbols id, SId id)
         | Binop (lhs, op, rhs) -> let (_, t1, slhs) = check_expr symbols lhs and (_, t2, srhs) = check_expr symbols rhs in
+          begin
           match (op, t1, t2) with
               (_, t1, t2) when t1 != t2 -> raise (Failure "mismatched types")
             | (Add, t1, t2) when t1 != Int && t1 != Float -> raise (Failure "can't add non-numeric things")
@@ -46,11 +48,53 @@ let check (program) =
             | (Greater, t1, t2) -> (symbols, Bool, SBinop ((t1, slhs), op, (t2, srhs)))
             | (Gequal, t1, t2) -> (symbols, Bool, SBinop ((t1, slhs), op, (t2, srhs)))
             | (Less, t1, t2) -> (symbols, Bool, SBinop ((t1, slhs), op, (t2, srhs)))
-            | (Lequal, t1, t2) -> (symbols, Bool, SBinop ((t1, slhs), op, (t2, srhs)))
+            | (Lequal, t1, t2) -> (symbols, Bool, SBinop ((t1, slhs), op, (t2, srhs))) 
+          end
+        | FuncInvoc (id, args) -> 
+          let signature = type_of_identifier symbols id 
+          and num_args = List.length args 
+          and arg_typs = typ_arg_list symbols args 
+          and sexpr_list = check_expr_list symbols args in 
+          begin
+          match (signature, args, num_args, arg_typs) with 
+          (FunSig(expected_args, _), _, num_args, _) when num_args != (List.length expected_args) -> 
+            raise (Failure (id ^ " expects " ^ string_of_int (List.length expected_args) ^ 
+            " but " ^ string_of_int (List.length expected_args) ^ " were provided."))
+          | (FunSig(expected_args, ret), args, _, arg_typs) ->
+              if args != args then raise (Failure (id ^ " expects arguments of type " ^ string_of_typ_list ", " expected_args ^ 
+                " but arguments of type " ^ string_of_typ_list ", " arg_typs ^ 
+                " were provided."))
+            else (symbols, ret, SFuncInvoc (id, sexpr_list))
+          end
+        | Function(args, body) -> 
+            let deduced_type = FunSig(type_arg_decl_list symbols args, typ_of_func_body symbols body)
+            and sfunc = SFunction(check_bind_list symbols args, snd (check_stmt_list symbols body)) in
+          (symbols, deduced_type, sfunc)
 
+    and check_expr_list symbols lst = 
+      let help = List.map (check_expr symbols) lst 
+      in List.map (fun (_, x, y) -> (x, y)) help
+
+    and typ_arg_list symbols lst = 
+      List.map (fun (_, x, _) -> x) (List.map (check_expr symbols) lst)
+
+    and typ_of_expr symbols ex = 
+      let (_, x, _) = check_expr symbols ex in x
     and type_of_identifier symbols s =
       try StringMap.find s symbols
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
+
+    and type_arg_decl_list symbols lst = 
+      let filtered = let rec h = function 
+        [] -> [] | x :: rest -> begin match x with Decl(_, _) -> x :: (h rest) | _ -> h rest end in h lst
+      in
+      let sdecls = List.map (fun x -> begin match x with Decl(y, z) -> check_decl symbols y z | _ -> raise (Failure "shouldn't see this") end) filtered in
+      let help x = 
+      begin
+        match x with
+        (_, SDecl(t, _)) -> t | _ -> raise (Failure "Function argument declarations must look like \"int x\"")
+      end
+    in List.map help sdecls
 
     and check_assign lvaluet rvaluet err =
       if lvaluet = rvaluet then () else raise (Failure err)
@@ -71,7 +115,11 @@ let check (program) =
     and check_bind symbols = function
       Decl(t, id) -> check_decl symbols t id
       | Defn(t, id, value) -> check_defn symbols t id value
-
+    and check_bind_list symbols lst = List.map snd (List.map (check_bind symbols) lst)
+    and typ_of_func_body symbols = function
+      [] -> Void
+      | x :: [] -> begin match x with Return y -> typ_of_expr symbols y | _ -> Void end
+      | x :: rest -> typ_of_func_body symbols rest
     and check_stmt_list symbols = function
       | [] -> (symbols, []) 
       | s :: sl ->
@@ -109,6 +157,7 @@ let check (program) =
               (_, t2, sinc) = check_expr symbols increment and
               (_, sstmts) = check_stmt symbols stmts in
               (symbols, SFor(sbind, (t1, scond), (t2, sinc), sstmts)) 
+      | Return x -> let (_, y, z) = check_expr symbols x in (symbols, SReturn((y, z)))
       | _ -> raise (Failure "uhh")
     in
     let (symbols, sbody_checked) = check_stmt_list StringMap.empty program.body in

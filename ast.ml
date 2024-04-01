@@ -45,12 +45,20 @@ and
 stmt =
   | Block of stmt list
   | Expr of expr
-  | Return of expr
   | Bind of bind 
-  | If of expr * stmt * stmt
+  | If of expr * stmt
+  | IfElse of expr * stmt * stmt
   | While of expr * stmt
   | For of bind * expr * expr * stmt
   | Return of expr
+and
+func = {
+  name : string;
+  ret : typ;
+  num_args : int;
+  args : bind list;
+  body : stmt list;
+}
 and
 program = {
   body: stmt list;
@@ -85,7 +93,7 @@ let rec string_of_expr = function
   | ListLit(lst) -> "[" ^ string_of_expr_list ", " lst ^ "]" 
   | Struct(lst) -> "{" ^ string_of_expr_list ", " lst ^ "}" 
   | Id(s) -> "\"" ^ s ^ "\""
-  | Binop(e1, o, e2) -> string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
+  | Binop(e1, o, e2) -> "BINOP " ^ string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Assign(v, e) -> v ^ " = " ^ string_of_expr e
   | Function(args, body) -> "(" ^ string_of_bind_list ", " args ^ ") {\n" ^ string_of_stmt_list "" body ^ "}"
   | FuncInvoc(id, args) -> id ^ "(" ^ string_of_expr_list ", " args ^ ")"
@@ -122,8 +130,8 @@ and
 string_of_stmt = function
   Block(stmts) -> "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
   | Expr(expr) -> string_of_expr expr ^ ";\n";
-  | Return(expr) -> "return " ^ string_of_expr expr ^ ";\n";
-  | If(e, s1, s2) -> "if (" ^ string_of_expr e ^ ")\n" ^ string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
+  | If(e, s) -> "if (" ^ string_of_expr e ^ ")\n" ^ string_of_stmt s 
+  | IfElse(e, s1, s2) -> "if (" ^ string_of_expr e ^ ")\n" ^ string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
   | Bind(bnd) -> string_of_bind bnd ^ ";\n"
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
   | For(i, e1, e2, s) -> "for (" ^ string_of_bind i ^ "; " ^ string_of_expr e1 ^ "; " ^ string_of_expr e2 ^ ") {\n" ^ string_of_stmt s ^ "}"
