@@ -85,7 +85,6 @@ let run_expr_tests_edge_cases () =
 let run_expr_tests_function_and_bind_cases () =
   let hello_world_func = Function([Decl(Int, "hello_world_func")], [Expr(StrLit("hello world"))]) in
   let defn_func = Function([Defn(Int, "my_func", Assign("my_var", StrLit("my_val")))], [Expr(StrLit("hello world"))]) in
-  print_endline (string_of_expr hello_world_func);
   assert (string_of_expr hello_world_func = "(int hello_world_func, ) {\n\"hello world\";\n}");
   assert (string_of_expr defn_func = "(int my_func = my_var = \"my_val\", ) {\n\"hello world\";\n}")
 

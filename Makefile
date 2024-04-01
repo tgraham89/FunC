@@ -1,10 +1,10 @@
-build: clean scanner parser
+build: clean scanner parser semant
 
 setup:
 	@if ! opam switch list | grep -q '5.1.1'; then \
         opam switch create 5.1.1 || true; \
     else \
-        echo "Switch 5.1.1 already exists."; 
+        echo "Switch 5.1.1 already exists."; \
 	fi
 	opam install ocaml-lsp-server
 	opam install ocamlformat
@@ -22,6 +22,8 @@ scanner: scanner.mll
 
 parser: parser.mly
 	ocamlyacc -v parser.mly
+	rm -f parser.ml
+	rm -f parser.mli
 
 test2:
 	ocamlbuild test2.native
