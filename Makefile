@@ -1,10 +1,10 @@
-build: clean scanner parser test
+build: clean scanner parser semant
 
 setup:
 	@if ! opam switch list | grep -q '5.1.1'; then \
         opam switch create 5.1.1 || true; \
     else \
-        echo "Switch 5.1.1 already exists."; 
+        echo "Switch 5.1.1 already exists."; \
 	fi
 	opam install ocaml-lsp-server
 	opam install ocamlformat
@@ -22,6 +22,8 @@ scanner: scanner.mll
 
 parser: parser.mly
 	ocamlyacc -v parser.mly
+	rm -f parser.ml
+	rm -f parser.mli
 
 test2:
 	ocamlbuild test2.native
@@ -30,6 +32,10 @@ test1:
 	ocamlbuild test1.native
 
 tests: test1 test2
+
+hello_world:
+	ocamlbuild test1.native
+	./test1.native < hello_world.tb > hello_world.output
 
 
 .PHONY: clean
@@ -47,8 +53,20 @@ clean:
 	rm -f ./test/*.cmo
 	rm -f ./test/*.native
 	rm -f ./test/*.out
+	rm -f hello_world.output
 
-.PHONY: test
-test:
+.PHONY: test test_ast test_scanner
+test: test_ast test_scanner
+	
+test_ast:
 	ocamlc -o ./test/test_ast.native ast.ml ./test/test_ast.ml
+	rm -f ./test/test_ast.cmi
+	rm -f ./test/test_ast.cmo
 	./test/test_ast.native > ./test/test_ast.out
+
+test_scanner:
+	rm -f ast.cmi
+	rm -f ast.cmo
+	ocamlbuild ./test/test_scanner.native
+	mv test_scanner.native ./test/
+	./test/test_scanner.native > ./test/test_scanner.out
