@@ -72,7 +72,7 @@ let check (program) =
             raise (Failure (id ^ " expects " ^ string_of_int (List.length expected_args) ^ 
             " but " ^ string_of_int (List.length expected_args) ^ " were provided."))
           | (FunSig(expected_args, ret), args, _, arg_typs) ->
-              if args != args then raise (Failure (id ^ " expects arguments of type " ^ string_of_typ_list ", " expected_args ^ 
+              if expected_args <> arg_typs then raise (Failure (id ^ " expects arguments of type " ^ string_of_typ_list ", " expected_args ^ 
                 " but arguments of type " ^ string_of_typ_list ", " arg_typs ^ 
                 " were provided."))
             else (symbols, ret, SFuncInvoc (id, sexpr_list))
@@ -200,7 +200,10 @@ let check (program) =
       | Return x -> let (_, y, z) = check_expr symbols x in (symbols, SReturn((y, z)))
       | _ -> raise (Failure "uhh")
     in
-    let (symbols, sbody_checked) = check_stmt_list StringMap.empty program.body in
+    let built_in_symbols =
+      StringMap.add "print" (FunSig([Int], Void)) StringMap.empty
+    in
+    let (symbols, sbody_checked) = check_stmt_list built_in_symbols program.body in
     {
       sbody = sbody_checked
     }
