@@ -24,17 +24,18 @@ let check (program) =
           let rec verify_list = function 
           [] -> (EmptyList, true) 
           | x :: [] -> let (_, tyx, _) = check_expr symbols x in (tyx, true) 
-          | x :: rest -> let (_, tyx, _) = check_expr symbols x in (tyx, List.for_all (fun a -> let (_, ca, _) = check_expr symbols a in ca = tyx) rest)
-          in
-          let slist = List.map (fun (_, t, x) -> (t, x)) (List.map (check_expr symbols) x)
-          in
-          let (tylist, valid) = verify_list x in if valid then (symbols, tylist, SListLit(tylist, slist)) else raise (Failure "the types of this list dont match")
+          | x :: rest -> 
+            let (_, tyx, _) = check_expr symbols x 
+            in (tyx, List.for_all (fun a -> let (_, ca, _) = check_expr symbols a in ca = tyx) rest) in
+            let slist = List.map (fun (_, t, x) -> (t, x)) (List.map (check_expr symbols) x) in
+            let (tylist, valid) = verify_list x in
+            let slistlit = (symbols, tylist, SListLit(tylist, slist)) in
+            if valid then slistlit else raise (Failure "the types of this list dont match")
         | Assign(var, e) as ex ->
           let lt = type_of_identifier symbols var
           and (symbols, rt, e') = check_expr symbols e in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^
-                    string_of_typ rt ^ " in " ^ string_of_expr ex
-          in
+                    string_of_typ rt ^ " in " ^ string_of_expr ex in
           check_assign lt rt err;
           (symbols, lt, SAssign(var, (rt, e')))
         | Id id -> (symbols, type_of_identifier symbols id, SId id)
@@ -85,20 +86,35 @@ let check (program) =
       let help = List.map (check_expr symbols) lst 
       in List.map (fun (_, x, y) -> (x, y)) help
 
+      (* takes in a list of exprs from the arguments of a function call and extracts their type *)
     and typ_arg_list symbols lst = 
       List.map (fun (_, x, _) -> x) (List.map (check_expr symbols) lst)
 
+      (* takes in an expr and returns its type *)
     and typ_of_expr symbols ex = 
       let (_, x, _) = check_expr symbols ex in x
+
+      (* takes an identifier and returns its type *)
     and type_of_identifier symbols s =
       try StringMap.find s symbols
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
 
+      (* takes in a list of arguments of a function definition/declaration and
+         returns their types *)
     and type_arg_decl_list symbols lst = 
+      (* Brendan: I think that this code is innocuous, but unnecessary *)
       let filtered = let rec h = function 
-        [] -> [] | x :: rest -> begin match x with Decl(_, _) -> x :: (h rest) | _ -> h rest end in h lst
-      in
-      let sdecls = List.map (fun x -> begin match x with Decl(y, z) -> check_decl symbols y z | _ -> raise (Failure "shouldn't see this") end) filtered in
+        [] -> [] | x :: rest -> begin 
+                                  match x with 
+                                  Decl(_, _) -> x :: (h rest) 
+                                  | _ -> h rest 
+                                end in h lst in
+      let sdecls = 
+          List.map (fun x ->  begin 
+                                match x with 
+                                Decl(y, z) -> check_decl symbols y z 
+                                | _ -> raise (Failure "shouldn't see this") 
+                              end) filtered in
       let help x = 
       begin
         match x with
@@ -106,15 +122,18 @@ let check (program) =
       end
     in List.map help sdecls
 
+    (* checks for duplicate bindings *)
     and check_duplicate_binds symbols id =
       try
         ignore (StringMap.find id symbols);
         raise (Failure ("that bind id already exists " ^ id))
       with Not_found -> ()
 
+      (* checks the types of an assignment *)
     and check_assign lvaluet rvaluet err =
       if lvaluet = rvaluet then () else raise (Failure err)
 
+      (* checks the actual type and the stated type of a definition *)
     and check_defn symbols t id value =
       let (symbols, rt, e') = check_expr symbols value in
       let err = "illegal assignment " ^ string_of_typ t ^ " = " ^
