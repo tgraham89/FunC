@@ -96,6 +96,12 @@ let check (program) =
       end
     in List.map help sdecls
 
+    and check_duplicate_binds symbols id =
+      try
+        ignore (StringMap.find id symbols);
+        raise (Failure ("that bind id already exists " ^ id))
+      with Not_found -> ()
+
     and check_assign lvaluet rvaluet err =
       if lvaluet = rvaluet then () else raise (Failure err)
 
@@ -105,10 +111,12 @@ let check (program) =
                 string_of_typ rt ^ " in " ^ string_of_bind (Defn(t, id, value))
       in
       check_assign t rt err;
+      check_duplicate_binds symbols id;
       let symbols = StringMap.add id t symbols in
       (symbols, SDefn(t, id, (rt, e')))
 
     and check_decl symbols t id =
+      check_duplicate_binds symbols id;
       let symbols = StringMap.add id t symbols in
       (symbols, SDecl(t, id))
 

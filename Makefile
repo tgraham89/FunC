@@ -33,6 +33,10 @@ test1:
 
 tests: test1 test2
 
+hello_world:
+	ocamlbuild test1.native
+	./test1.native < hello_world.tb > hello_world.output
+
 
 .PHONY: clean
 clean:
@@ -49,6 +53,7 @@ clean:
 	rm -f ./test/*.cmo
 	rm -f ./test/*.native
 	rm -f ./test/*.out
+	rm -f hello_world.output
 
 .PHONY: test
 test:
