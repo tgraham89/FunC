@@ -49,10 +49,10 @@ clean:
 	rm -f src/*.native
 	rm -f *.native
 	rm -rf _build
-	rm -f ast.cmi
-	rm -f ast.cmo
-	rm -f ast_test.cmi
-	rm -f ast_test.cmo
+	rm -f src/ast.cmi
+	rm -f src/ast.cmo
+	rm -f test/ast_test.cmi
+	rm -f test/ast_test.cmo
 	rm -f ./test/*.cmi
 	rm -f ./test/*.cmo
 	rm -f ./test/*.native
