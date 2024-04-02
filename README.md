@@ -18,9 +18,9 @@ Brendan Fay, Daniel Lee, Jesse Chong, Cecilia Shen, Syed Muhammad Raza, Thomas G
 - make setup (setup dev env for ocaml)
 
 # Test Commands
-- make test (runs the existing unit tests)
 - make hello_world (makes and semantically checks the hello_world.tb file)
 - make for_loop (runs the for_loop semantic check test)
+- make test (runs the existing unit tests)
 
 # Dependencies
 - ocaml
@@ -32,7 +32,7 @@ We have tests case for the ast "unit_tests_ast.ml" and preliminary test cases fo
 You can run all tests using the above commands. The output will show certain warnings. We will fix these
 prior to the final submission.
 
-We still need to implement for loops, structs, unary operators, scope resolution, and other key features. We also need
+We still need to implement structs, unary operators, scope resolution, and other key features. We also need
 to implement the conversion to IR. We plan to complete these by the deadline.
 
 

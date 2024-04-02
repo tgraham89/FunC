@@ -50,6 +50,7 @@ let check (program) =
             | (Mod, t1, t2) when t1 != Int && t1 != Float -> raise (Failure "can't mod non-numeric things")
             | (Or, t1, t2) when t1 != Bool -> raise (Failure "Or only accepts booleans")
             | (And, t1, t2) when t1 != Bool -> raise (Failure "Or only accepts booleans")
+            | (Add, t1, t2) -> (symbols, t1, SBinop ((t1, slhs), op, (t2, srhs))) 
             | (Sub, t1, t2) -> (symbols, t1, SBinop ((t1, slhs), op, (t2, srhs))) 
             | (Mult, t1, t2) -> (symbols, t1, SBinop ((t1, slhs), op, (t2, srhs))) 
             | (Div, t1, t2) -> (symbols, t1, SBinop ((t1, slhs), op, (t2, srhs))) 
@@ -202,7 +203,7 @@ let check (program) =
           let (symbols2, sstmts) = check_stmt symbols2 stmts in
           (symbols2, SFor(sbind, (t1, scond), (t2, sinc), sstmts)) 
       | Return x -> let (_, y, z) = check_expr symbols x in (symbols, SReturn((y, z)))
-      | _ -> raise (Failure "uhh")
+      | _ -> raise (Failure "The statement that was parsed hasn't been implemented yet")
     in
     let built_in_symbols =
       StringMap.add "print" (FunSig([String], Void)) StringMap.empty

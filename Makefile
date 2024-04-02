@@ -35,11 +35,11 @@ tests: sast_test ast_test
 
 hello_world:
 	ocamlbuild -I src test/sast_test.native
-	./sast_test.native < hello_world.tb
+	./sast_test.native < test/hello_world.tb
 
 for_loop:
 	ocamlbuild -I src test/sast_test.native
-	./sast_test.native < for_loop.tb
+	./sast_test.native < test/for_loop.tb
 
 .PHONY: clean
 clean:
@@ -63,7 +63,7 @@ clean:
 test: test_ast test_scanner
 	
 test_ast:
-	ocamlc -o ./test/test_ast.native ast.ml ./test/test_ast.ml
+	ocamlc -o ./test/test_ast.native src/ast.ml ./test/test_ast.ml
 	rm -f ./test/test_ast.cmi
 	rm -f ./test/test_ast.cmo
 	./test/test_ast.native > ./test/test_ast.out
