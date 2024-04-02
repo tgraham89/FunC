@@ -25,24 +25,25 @@ parser: parser.mly
 	rm -f parser.ml
 	rm -f parser.mli
 
-test2:
-	ocamlbuild test2.native
+ast_test:
+	ocamlbuild -I src test/ast_test.native
 
-test1:
-	ocamlbuild test1.native
+sast_test:
+	ocamlbuild -I src test/sast_test.native
 
-tests: test1 test2
+tests: sast_test ast_test
 
 hello_world:
-	ocamlbuild test1.native
-	./test1.native < hello_world.tb > hello_world.output
+	ocamlbuild -I src test/sast_test.native
+	./sast_test.native < hello_world.tb
 
 
 .PHONY: clean
 clean:
-	rm -f parser.ml
-	rm -f parser.mli
-	rm -f parser.output
+	rm -f src/parser.ml
+	rm -f src/parser.mli
+	rm -f src/parser.output
+	rm -f src/*.native
 	rm -f *.native
 	rm -rf _build
 	rm -f ast.cmi

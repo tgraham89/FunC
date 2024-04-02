@@ -50,14 +50,14 @@ bind_list_rule:
   | bind_rule COMMA bind_list_rule    { $1 :: $3 }
 
 stmt_list_rule:
-    stmt_rule                   { [$1]     }
-    // /* nothing */               { []  }
-    | stmt_list_rule stmt_rule  { $1 @ [$2] }
+    /* nothing */                       { []  }
+    | stmt_rule                           { [$1]     }
+    | stmt_list_rule stmt_rule          { $1 @ [$2] }
 
 expr_list_rule:
-  // /* nothing */                       { [] }
+  /* nothing */                         { [] }
   | expr_rule                           { [$1] }
-  | expr_rule COMMA expr_list_rule    { $1 :: $3 }
+  | expr_rule COMMA expr_list_rule      { $1 :: $3 }
 
 typ_rule:
   INT                                         { Int }
