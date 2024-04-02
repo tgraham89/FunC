@@ -189,17 +189,17 @@ let check (program) =
           if t != Bool then raise (Failure "condition must be a boolean")
           else let (_, sstmts) = check_stmt symbols stmts in
           (symbols, SWhile ((t, scond), sstmts))
-      | For (counter, cond, increment, stmts) -> let (_, t, scond) = check_expr symbols cond in
+      | For (counter, cond, increment, stmts) -> 
         print_endline("inside for check");
-        if t != Bool then raise (Failure "condition must be a boolean")
+        print_endline(string_of_bind counter);
+        print_endline(string_of_expr cond);
+        print_endline(string_of_expr increment);
+        let (symbols2, sbind) = check_bind symbols counter in 
+        let (_, t1, scond) = check_expr symbols2 cond in 
+        if t1 != Bool then raise (Failure "condition must be a boolean")
         else
-          print_endline(string_of_bind counter);
-          print_endline(string_of_expr cond);
-          print_endline(string_of_expr increment);
-          let (symbols2, sbind) = check_bind symbols counter in 
-          let (_, t1, scond) = check_expr symbols cond in 
-          let (_, t2, sinc) = check_expr symbols increment in
-          let (_, sstmts) = check_stmt symbols stmts in
+          let (_, t2, sinc) = check_expr symbols2 increment in
+          let (symbols2, sstmts) = check_stmt symbols2 stmts in
           (symbols2, SFor(sbind, (t1, scond), (t2, sinc), sstmts)) 
       | Return x -> let (_, y, z) = check_expr symbols x in (symbols, SReturn((y, z)))
       | _ -> raise (Failure "uhh")

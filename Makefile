@@ -37,6 +37,9 @@ hello_world:
 	ocamlbuild -I src test/sast_test.native
 	./sast_test.native < hello_world.tb
 
+for_loop:
+	ocamlbuild -I src test/sast_test.native
+	./sast_test.native < for_loop.tb
 
 .PHONY: clean
 clean:

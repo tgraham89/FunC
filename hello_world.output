@@ -1,9 +1,0 @@
-
-
-Sementically checked program: 
-
-function<> -> int main = (function<> -> int : string_of_sexpr not implemented yet);
-
-(int : string_of_sexpr not implemented yet);
-
-

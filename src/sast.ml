@@ -48,8 +48,8 @@ let rec string_of_sexpr (t, e) =
     | SId(s) -> s
     | SBinop(e1, o, e2) -> string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
     | SAssign(v, e) -> v ^ " = " ^ string_of_sexpr e
-    | SFunction(args, body) -> "(" ^ string_of_sbind_list ", " args ^ ") {\n\t" ^ string_of_sstmt_list ";\n\t" body ^ "}"
-    (* | SFuncInvoc(id, args) -> id ^ "(" ^ string_of_sexpr_list ", " args ^ ")" *)
+    | SFunction(args, body) -> "(" ^ string_of_sbind_list ", " args ^ ") {\n\t" ^ string_of_sstmt_list "\t" body ^ "\n}"
+    | SFuncInvoc(id, args) -> id ^ "(" ^ string_of_sexpr_list ", " args ^ ")"
     | _ -> "string_of_sexpr not implemented yet"
     ) ^ ")"
 
@@ -72,12 +72,12 @@ let rec string_of_sexpr (t, e) =
   | SIfElse(cond, then_stmt, else_stmt) -> "if (" ^ string_of_sexpr cond ^ ")\n" ^ string_of_sstmt then_stmt ^ "else\n" ^ string_of_sstmt else_stmt
   | SWhile(cond, stmt) -> "while (" ^ string_of_sexpr cond ^ ")\n" ^ string_of_sstmt stmt
   | SFor(init, cond, incr, stmt) -> "for (" ^ string_of_sbind init ^ "; " ^ string_of_sexpr cond ^ "; " ^ string_of_sexpr incr ^ ")\n" ^ string_of_sstmt stmt
-  | SReturn(value) -> "return " ^ string_of_sexpr value
+  | SReturn(value) -> "return " ^ string_of_sexpr value ^ ";"
 
   and string_of_sstmt_list delim = function
   [] -> ""
-  | x :: [] -> string_of_sstmt x
-  | x :: rest -> delim ^ string_of_sstmt x ^ string_of_sstmt_list delim rest
+  | x :: [] -> string_of_sstmt x ^ delim
+  | x :: rest -> string_of_sstmt x ^ delim ^ string_of_sstmt_list delim rest
 
   let string_of_sprogram fdecl =
     "\n\nSementically checked program: \n\n" ^
