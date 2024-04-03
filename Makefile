@@ -31,7 +31,6 @@ ast_test:
 sast_test:
 	ocamlbuild -I src test/sast_test.native
 
-tests: sast_test ast_test
 
 hello_world:
 	ocamlbuild -I src test/sast_test.native
@@ -59,18 +58,20 @@ clean:
 	rm -f ./test/*.out
 	rm -f hello_world.output
 
-.PHONY: test test_ast test_scanner
-test: test_ast test_scanner
+.PHONY: unit_tests unit_test_ast unit_test_scanner
+
+unit_tests: unit_test_ast unit_test_scanner
 	
-test_ast:
+unit_test_ast:
 	ocamlbuild -I src test/unit_tests_ast.native
 	rm -f ./test/unit_tests_ast.cmi
 	rm -f ./test/unit_tests_ast.cmo
-	./unit_tests_ast.native > ./test/unit_tests_ast.out
+	mv unit_tests_ast.native ./test/
+	./test/unit_tests_ast.native > ./test/unit_tests_ast.out
 
-test_scanner:
-	rm -f ast.cmi
-	rm -f ast.cmo
-	ocamlbuild ./test/test_scanner.native
-	mv test_scanner.native ./test/
-	./test/test_scanner.native > ./test/test_scanner.out
+unit_test_scanner:
+	rm -f /test/ast.cmi
+	rm -f /test/ast.cmo
+	ocamlbuild -I src test/unit_tests_scanner.native
+	mv unit_tests_scanner.native ./test/
+	./test/unit_tests_scanner.native > ./test/unit_tests_scanner.out
