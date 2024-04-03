@@ -1,0 +1,4 @@
+struct customer_type {
+    string name,
+    int id,
+}

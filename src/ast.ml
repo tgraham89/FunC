@@ -13,6 +13,7 @@ type bop = Add
           | Div
           | Mod
           | Vbar
+          | Dot
 type expr =
   Literal of int
   | BoolLit of bool
@@ -23,9 +24,12 @@ type expr =
   | Binop of expr * bop * expr
   | Assign of string * expr
   | ListLit of expr list
-  | Struct of expr list
+  | StructId of expr list
   | Function of bind list * stmt list
   | FuncInvoc of string * expr list
+  (* | StructCreate of string * stmt list *)
+  | StructAccess of expr * expr
+  | StructAssign of expr * expr * expr
   | Zero
 and
 bind = Decl of typ * string 
@@ -39,9 +43,10 @@ typ =
   | Void
   | Float 
   | List of typ
-  | StructSig of string * bind list
+  | StructSig of string
   | FunSig of typ list * typ
   | EmptyList
+  | Struct of string
 and
 stmt =
   | Block of stmt list
@@ -52,6 +57,11 @@ stmt =
   | While of expr * stmt
   | For of bind * expr * expr * stmt
   | Return of expr
+  (* | Struct_decl of string * bind list *)
+  | Struct_decl of {
+        sname: string;
+        members: bind list;
+        }
 (* and
 func = {
   name : string;
@@ -82,6 +92,7 @@ let string_of_op = function
   | Div -> "/"
   | Mod -> "%"
   | Vbar -> "|"
+  | Dot -> "."
 
 let rec string_of_expr = function
   Zero -> "0"
@@ -92,12 +103,15 @@ let rec string_of_expr = function
   | ChrLit(c) -> String.make 1 c
   | FloatLit(f) -> string_of_float f
   | ListLit(lst) -> "[" ^ string_of_expr_list ", " lst ^ "]" 
-  | Struct(lst) -> "{" ^ string_of_expr_list ", " lst ^ "}" 
+  | StructId(lst) -> "{" ^ string_of_expr_list ", " lst ^ "}" 
   | Id(s) -> s
   | Binop(e1, o, e2) -> string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Assign(v, e) -> v ^ " = " ^ string_of_expr e
   | Function(args, body) -> "(" ^ string_of_bind_list ", " args ^ ") {\n" ^ string_of_stmt_list "" body ^ "}"
   | FuncInvoc(id, args) -> id ^ "(" ^ string_of_expr_list ", " args ^ ")"
+  | StructAssign(v, m, e) -> string_of_expr v ^ "." ^ string_of_expr m ^ " = " ^ string_of_expr e ^ ""
+  | StructAccess(v, m) -> string_of_expr v ^ "." ^ string_of_expr m
+  (* | StructCreate(v) -> "{\n" ^ string_of_stmt_list "" v ^ "};" *)
 and
 string_of_expr_list delim = function
   [] -> ""
@@ -111,8 +125,9 @@ string_of_typ = function
   | String -> "string"
   | Void -> "void"
   | Float -> "float"
+  | Struct(t) -> t
   | List t -> "list<" ^ (string_of_typ t) ^ ">"
-  | StructSig (name, fields) -> "struct " ^ name ^ " {\n" ^ string_of_bind_list ";\n" fields ^ "}"
+  | StructSig (name) -> "struct " ^ name ^ " "
   | FunSig (args, ret) -> "function<" ^ string_of_typ_list ", " args ^ "> -> " ^ string_of_typ ret 
   | EmptyList -> "[]"
 and
@@ -141,6 +156,8 @@ string_of_stmt = function
     "for (" ^ string_of_bind i ^ "; " ^ string_of_expr e1 ^ "; " 
     ^ string_of_expr e2 ^ ") {\n" ^ string_of_stmt s ^ "}"
   | Return(expr) -> "\treturn " ^ string_of_expr expr ^ ";\n"
+  | Struct_decl(s) -> "struct " ^ s.sname ^ " {\n" ^ string_of_bind_list ",\n" s.members ^ ",\n};"
+  (* | Struct_decl(n, v) -> "struct " ^ n ^ " {\n" ^ string_of_bind_list "," v ^ "\n};" *)
 and string_of_stmt_list delim = function
   [] -> ""
   | x :: [] -> string_of_stmt x
