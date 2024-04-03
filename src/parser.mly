@@ -50,7 +50,6 @@ bind_list_rule:
   | bind_rule COMMA bind_list_rule    { $1 :: $3 }
 
 stmt_list_rule:
-    /* nothing */                       { []  }
     | stmt_rule                         { [$1]     }
     | stmt_list_rule stmt_rule          { $1 @ [$2] }
 
@@ -127,4 +126,4 @@ expr_rule:
   | ID LPAREN expr_list_rule RPAREN     { FuncInvoc($1, $3) }
   | LPAREN bind_list_rule RPAREN FUNCARROW LBRACE stmt_list_rule RBRACE { Function($2, $6) }        
   | LPAREN expr_rule RPAREN       { $2 }
-  | VBAR expr_list_rule VBAR  { Struct($2) }
+  /* | VBAR expr_list_rule VBAR  { Struct($2) } */
