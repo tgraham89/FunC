@@ -6,7 +6,6 @@ Brendan Fay, Daniel Lee, Jesse Chong, Cecilia Shen, Syed Muhammad Raza, Thomas G
 
 # How To Run For Hello World
 - Run "make setup"
-- Run "make build"
 - Run "make hello_world"
 
 # Utility Commands

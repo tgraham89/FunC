@@ -63,10 +63,10 @@ clean:
 test: test_ast test_scanner
 	
 test_ast:
-	ocamlc -o ./test/test_ast.native src/ast.ml ./test/test_ast.ml
-	rm -f ./test/test_ast.cmi
-	rm -f ./test/test_ast.cmo
-	./test/test_ast.native > ./test/test_ast.out
+	ocamlbuild -I src test/unit_tests_ast.native
+	rm -f ./test/unit_tests_ast.cmi
+	rm -f ./test/unit_tests_ast.cmo
+	./unit_tests_ast.native > ./test/unit_tests_ast.out
 
 test_scanner:
 	rm -f ast.cmi
