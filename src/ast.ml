@@ -24,12 +24,12 @@ type expr =
   | Binop of expr * bop * expr
   | Assign of string * expr
   | ListLit of expr list
-  (* | StructId of string *)
+  | StructId of string
   | Function of bind list * stmt list
   | FuncInvoc of string * expr list
   (* | StructCreate of string * stmt list *)
   | StructAccess of expr * expr
-  | StructAssign of expr * expr * expr
+  | StructAssign of expr list (* Used to define an instance of a struct *)
   | Zero
 and
 bind = Decl of typ * string 
@@ -43,7 +43,7 @@ typ =
   | Void
   | Float 
   | List of typ
-  | StructSig of string
+  | StructSig of string (* Used for defining an instance of a struct *)
   | FunSig of typ list * typ
   | EmptyList
   | Struct of string
@@ -58,7 +58,7 @@ stmt =
   | For of bind * expr * expr * stmt
   | Return of expr
   (* | Struct_decl of string * bind list *)
-  | StructDecl of {
+  | StructDecl of {   (* Used for defining a new struct *)
         sname: string;
         members: bind list;
         }
@@ -103,13 +103,13 @@ let rec string_of_expr = function
   | ChrLit(c) -> String.make 1 c
   | FloatLit(f) -> string_of_float f
   | ListLit(lst) -> "[" ^ string_of_expr_list ", " lst ^ "]" 
-  (* | StructId(s) -> s  *)
+  | StructId(s) -> s 
   | Id(s) -> s
   | Binop(e1, o, e2) -> string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Assign(v, e) -> v ^ " = " ^ string_of_expr e
   | Function(args, body) -> "(" ^ string_of_bind_list ", " args ^ ") {\n" ^ string_of_stmt_list "" body ^ "}"
   | FuncInvoc(id, args) -> id ^ "(" ^ string_of_expr_list ", " args ^ ")"
-  | StructAssign(v, m, e) -> string_of_expr v ^ "." ^ string_of_expr m ^ " = " ^ string_of_expr e ^ ""
+  | StructAssign(e) -> "{\n" ^ string_of_expr_list ",\n" e ^ ",\n}"
   | StructAccess(v, m) -> string_of_expr v ^ "." ^ string_of_expr m
   (* | StructCreate(v) -> "{\n" ^ string_of_stmt_list "" v ^ "};" *)
 and
@@ -125,9 +125,9 @@ string_of_typ = function
   | String -> "string"
   | Void -> "void"
   | Float -> "float"
-  | Struct(t) -> "struct"
+  | Struct(s) -> s
   | List t -> "list<" ^ (string_of_typ t) ^ ">"
-  | StructSig (name) -> "struct " ^ name ^ " "
+  | StructSig (name) -> name      (* Used for defining an instance of a struct *)
   | FunSig (args, ret) -> "function<" ^ string_of_typ_list ", " args ^ "> -> " ^ string_of_typ ret 
   | EmptyList -> "[]"
 and

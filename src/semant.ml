@@ -16,12 +16,6 @@ let print_members = function
 
 let print_all_members b = List.map(print_members) b
 
-let bind_members = function
-  Decl (t, s) -> let sbind = (t, s) in sbind
-  | Defn (t, s, e) -> raise (Failure "definition")
-
-let bind_all_members b = List.map(bind_members) b
-
 let check (program) = 
   let check_program program =
 
@@ -214,17 +208,12 @@ let check (program) =
           let (symbols2, sstmts) = check_stmt symbols2 stmts in
           (symbols2, SFor(sbind, (t1, scond), (t2, sinc), sstmts)) 
       | Return x -> let (_, y, z) = check_expr symbols x in (symbols, SReturn((y, z)))
-      | StructDecl (s) -> 
-        begin
-        print_all_members(s.members);
-        bind_all_members(s.members);
-        raise (Failure("Struct  declaration!"));
-        end
-        (* let schecked = SStructDecl({sname = s.sname; members = s.members}) in *)
-        (* List.map(check_bind symbols) s.members}) in *)
-      (* check_bind_list symbols s.members in *)
-          (* (symbols, SStructDecl(s)) *)
-          (* print_endline("hello") *)
+      | StructDecl (s) -> let bind_members = function
+          Decl (t, s) -> let (sbind : Sast.sbind) = SDecl (t, s) in sbind
+          | _ -> raise (Failure "Definition in a struct declaration") in
+          let bind_all_members b = List.map(bind_members) b in
+          let (sbind : Sast.sbind list) = bind_all_members(s.members) in 
+          (symbols, SStructDecl({sname = s.sname; members = sbind}))
       | _ -> raise (Failure "The statement that was parsed hasn't been implemented yet")
     in
     let built_in_symbols =

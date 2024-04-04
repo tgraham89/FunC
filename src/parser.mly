@@ -69,7 +69,7 @@ typ_rule:
   | FLOAT                                     { Float }
   | VOID                                      { Void }
   | LIST LT typ_rule GT                       { List $3 }
-  // | STRUCT STRUCT_ID                          { StructSig($2) }
+  | STRUCT_ID                                    { StructSig($1) }
   | FUNC LT typ_list_rule GT OUTPUT typ_rule  { FunSig($3, $6) }
   | LAMBDA LT typ_list_rule GT OUTPUT typ_rule { FunSig($3, $6) }
 
@@ -91,8 +91,8 @@ closed_stmt:
    IF LPAREN expr_rule RPAREN closed_stmt ELSE closed_stmt               { IfElse ($3, $5, $7)    }
   | WHILE LPAREN expr_rule RPAREN closed_stmt                             { While ($3, $5)         }
   | FOR LPAREN bind_rule SEMI expr_rule SEMI expr_rule RPAREN closed_stmt { For ($3, $5, $7, $9)   }
-  | STRUCT ID LBRACE struct_member_rule RBRACE SEMI                   { StructDecl {sname = $2; members = List.rev $4}}
-  // | STRUCT ID LBRACE struct_member_rule RBRACE                    { Struct_decl ($2, $4)}
+  | STRUCT STRUCT_ID LBRACE struct_member_rule RBRACE SEMI                   { StructDecl {sname = $2; members = $4}}
+  // | STRUCT_ID ID LBRACE struct_member_assign_rule RBRACE                    { Struct_decl ($2, $4)}
   | simple_stmt                                                             { $1 }
 
 struct_member_rule:
@@ -101,6 +101,13 @@ struct_member_rule:
 
 struct_member:
   typ_rule ID COMMA                                                       {Decl($1, $2)}
+
+struct_member_assign_rule:
+  struct_member_assign                                                      {[$1]}
+  | struct_member_assign_rule struct_member_assign                          {$1 @ [$2]}
+
+struct_member_assign:
+   ID ASSIGN expr_rule COMMA                                    { Assign($1, $3) }
 
 simple_stmt:
   expr_rule SEMI                                                          { Expr $1                }
@@ -114,9 +121,9 @@ expr_rule:
   | STRING_LIT                    { StrLit $1             }
   | FLOAT_LIT                     { FloatLit $1 }
   | LITERAL                       { Literal $1 }
+  | STRUCT_ID                     { StructId $1 }
   | LBRACK expr_list_rule RBRACK  { ListLit($2) }
   | ID                            { Id $1 }
-  // | STRUCT_ID                     { StructId $1 }
   | PLUS LITERAL                  { Literal $2 }
   | MINUS LITERAL                 { Binop(Zero, Sub, Literal($2)) }
   | expr_rule PLUS expr_rule      { Binop ($1, Add, $3) }
@@ -137,7 +144,7 @@ expr_rule:
   | ID LPAREN expr_list_rule RPAREN     { FuncInvoc($1, $3) }
   | LPAREN bind_list_rule RPAREN FUNCARROW LBRACE stmt_list_rule RBRACE { Function($2, $6) }        
   | LPAREN expr_rule RPAREN       { $2 }
-  // | LBRACE stmt_list_rule RBRACE { StructCreate($2)}
+  | LBRACE struct_member_assign_rule RBRACE { StructAssign($2)}
   // | STRUCT STRUCT_ID LBRACE stmt_list_rule RBRACE { StructCreate($2, $4)}
   | ID DOT ID                     { StructAccess (Id($1), Id($3))}
-  | ID DOT ID ASSIGN expr_rule {StructAssign(Id($1), Id($3), $5)}
+  // | ID DOT ID ASSIGN expr_rule {StructAssign(Id($1), Id($3), $5)}

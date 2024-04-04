@@ -1,4 +1,4 @@
-struct customer_type {
+struct Customertype {
     string name,
     int id,
 };
