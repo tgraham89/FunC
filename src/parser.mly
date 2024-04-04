@@ -76,6 +76,7 @@ typ_rule:
 bind_rule:
   typ_rule ID ASSIGN expr_rule   { Defn($1, $2, $4) }
   | typ_rule ID                  { Decl($1, $2) }
+  // | typ_rule STRUCT_ID                  { Decl($1, $2) }
   | typ_rule COLON expr_rule     { Defn($1, "anon", $3) }
 
 stmt_rule:
@@ -90,7 +91,7 @@ closed_stmt:
    IF LPAREN expr_rule RPAREN closed_stmt ELSE closed_stmt               { IfElse ($3, $5, $7)    }
   | WHILE LPAREN expr_rule RPAREN closed_stmt                             { While ($3, $5)         }
   | FOR LPAREN bind_rule SEMI expr_rule SEMI expr_rule RPAREN closed_stmt { For ($3, $5, $7, $9)   }
-  | STRUCT ID LBRACE struct_member_rule RBRACE                    { Struct_decl {sname = $2; members = List.rev $4}}
+  | STRUCT ID LBRACE struct_member_rule RBRACE SEMI                   { StructDecl {sname = $2; members = List.rev $4}}
   // | STRUCT ID LBRACE struct_member_rule RBRACE                    { Struct_decl ($2, $4)}
   | simple_stmt                                                             { $1 }
 
@@ -115,6 +116,7 @@ expr_rule:
   | LITERAL                       { Literal $1 }
   | LBRACK expr_list_rule RBRACK  { ListLit($2) }
   | ID                            { Id $1 }
+  // | STRUCT_ID                     { StructId $1 }
   | PLUS LITERAL                  { Literal $2 }
   | MINUS LITERAL                 { Binop(Zero, Sub, Literal($2)) }
   | expr_rule PLUS expr_rule      { Binop ($1, Add, $3) }

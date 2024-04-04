@@ -24,7 +24,7 @@ type expr =
   | Binop of expr * bop * expr
   | Assign of string * expr
   | ListLit of expr list
-  | StructId of expr list
+  (* | StructId of string *)
   | Function of bind list * stmt list
   | FuncInvoc of string * expr list
   (* | StructCreate of string * stmt list *)
@@ -58,7 +58,7 @@ stmt =
   | For of bind * expr * expr * stmt
   | Return of expr
   (* | Struct_decl of string * bind list *)
-  | Struct_decl of {
+  | StructDecl of {
         sname: string;
         members: bind list;
         }
@@ -103,7 +103,7 @@ let rec string_of_expr = function
   | ChrLit(c) -> String.make 1 c
   | FloatLit(f) -> string_of_float f
   | ListLit(lst) -> "[" ^ string_of_expr_list ", " lst ^ "]" 
-  | StructId(lst) -> "{" ^ string_of_expr_list ", " lst ^ "}" 
+  (* | StructId(s) -> s  *)
   | Id(s) -> s
   | Binop(e1, o, e2) -> string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Assign(v, e) -> v ^ " = " ^ string_of_expr e
@@ -125,7 +125,7 @@ string_of_typ = function
   | String -> "string"
   | Void -> "void"
   | Float -> "float"
-  | Struct(t) -> t
+  | Struct(t) -> "struct"
   | List t -> "list<" ^ (string_of_typ t) ^ ">"
   | StructSig (name) -> "struct " ^ name ^ " "
   | FunSig (args, ret) -> "function<" ^ string_of_typ_list ", " args ^ "> -> " ^ string_of_typ ret 
@@ -156,7 +156,7 @@ string_of_stmt = function
     "for (" ^ string_of_bind i ^ "; " ^ string_of_expr e1 ^ "; " 
     ^ string_of_expr e2 ^ ") {\n" ^ string_of_stmt s ^ "}"
   | Return(expr) -> "\treturn " ^ string_of_expr expr ^ ";\n"
-  | Struct_decl(s) -> "struct " ^ s.sname ^ " {\n" ^ string_of_bind_list ",\n" s.members ^ ",\n};"
+  | StructDecl(s) -> "struct " ^ s.sname ^ " {\n" ^ string_of_bind_list ",\n" s.members ^ ",\n};"
   (* | Struct_decl(n, v) -> "struct " ^ n ^ " {\n" ^ string_of_bind_list "," v ^ "\n};" *)
 and string_of_stmt_list delim = function
   [] -> ""

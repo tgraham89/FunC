@@ -10,8 +10,19 @@ module StringMap = Map.Make(String)
 
    Check each statement in program.body *)
 
-let check (program) =
+let print_members = function
+  Decl (t, s) -> begin print_string(string_of_typ t); print_endline(" " ^ s); end
+  | Defn (t, s, e) -> print_endline ("definition")
 
+let print_all_members b = List.map(print_members) b
+
+let bind_members = function
+  Decl (t, s) -> let sbind = (t, s) in sbind
+  | Defn (t, s, e) -> raise (Failure "definition")
+
+let bind_all_members b = List.map(bind_members) b
+
+let check (program) = 
   let check_program program =
 
     let rec check_expr symbols = function
@@ -203,6 +214,17 @@ let check (program) =
           let (symbols2, sstmts) = check_stmt symbols2 stmts in
           (symbols2, SFor(sbind, (t1, scond), (t2, sinc), sstmts)) 
       | Return x -> let (_, y, z) = check_expr symbols x in (symbols, SReturn((y, z)))
+      | StructDecl (s) -> 
+        begin
+        print_all_members(s.members);
+        bind_all_members(s.members);
+        raise (Failure("Struct  declaration!"));
+        end
+        (* let schecked = SStructDecl({sname = s.sname; members = s.members}) in *)
+        (* List.map(check_bind symbols) s.members}) in *)
+      (* check_bind_list symbols s.members in *)
+          (* (symbols, SStructDecl(s)) *)
+          (* print_endline("hello") *)
       | _ -> raise (Failure "The statement that was parsed hasn't been implemented yet")
     in
     let built_in_symbols =
