@@ -9,3 +9,4 @@ commit_message.txt
 scanner.native
 *.native
 calc.ml
+test.tb
