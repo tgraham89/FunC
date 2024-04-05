@@ -46,7 +46,7 @@ typ =
   | StructSig of string (* Used for defining an instance of a struct *)
   | FunSig of typ list * typ
   | EmptyList
-  | Struct of string
+  | Struct
 and
 stmt =
   | Block of stmt list
@@ -125,7 +125,7 @@ string_of_typ = function
   | String -> "string"
   | Void -> "void"
   | Float -> "float"
-  | Struct(s) -> s
+  | Struct -> "struct" (* Used for noting that a variable is in a struct *)
   | List t -> "list<" ^ (string_of_typ t) ^ ">"
   | StructSig (name) -> name      (* Used for defining an instance of a struct *)
   | FunSig (args, ret) -> "function<" ^ string_of_typ_list ", " args ^ "> -> " ^ string_of_typ ret 

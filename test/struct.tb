@@ -1,0 +1,21 @@
+struct Employeetype {
+    string name,
+    int id,
+};
+
+Employeetype engineer = {
+    name = "John Smith",
+    id = 25,
+};
+
+struct Student {
+    string full_name,
+    int id,
+    int grad_year,
+};
+
+Student john = {
+    full_name = "John Smith",
+    id = 456,
+    grad_year = 2025,
+};

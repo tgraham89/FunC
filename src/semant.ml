@@ -4,17 +4,31 @@ open Ast
 open Sast
 
 module StringMap = Map.Make(String)
+module StructType = Map.Make(String)
 
 (* Semantic checking of the AST. Returns an SAST if successful,
    throws an exception if something is wrong.
 
    Check each statement in program.body *)
 
+   (* Debugger Functions *)
+let map_to_str m = 
+  let inners = List.map (fun (k, v) -> k ^ " -> " ^ (string_of_typ v)) (StringMap.bindings m)
+  in "[" ^ (String.concat ", " inners) ^ "]"
+  
+
 let print_members = function
   Decl (t, s) -> begin print_string(string_of_typ t); print_endline(" " ^ s); end
   | Defn (t, s, e) -> print_endline ("definition")
 
 let print_all_members b = List.map(print_members) b
+
+let print_members_list = function
+  Assign (s, e) -> begin print_string s; print_endline(" " ^ string_of_expr e); end
+  | _ -> print_endline ("Incorrect statement within a struct")
+
+let print_all_members_list b = List.map(print_members_list) b
+(* End Debugger Functions *)
 
 let check (program) = 
   let check_program program =
@@ -87,6 +101,15 @@ let check (program) =
             let deduced_type = FunSig(type_arg_decl_list symbols args, typ_of_func_body symbols body)
             and sfunc = SFunction(check_bind_list symbols args, snd (check_stmt_list symbols body)) in
           (symbols, deduced_type, sfunc)
+        | StructAssign(exprs) -> 
+          let expr_members = function (* function to return assignment for 1 expression *)
+            Assign(s, e) -> let (syms, typ, sx) = check_expr symbols e in
+            let (sexp : Sast.sexpr) = (typ, sx) in sexp
+            | _ -> raise (Failure "Incorrect statement within struct instance creation") in
+            (* apply function to each expression in the struct *)
+            let expr_all_members all_sx = List.map(expr_members) all_sx in 
+            let (sexprs : Sast.sexpr list) = expr_all_members exprs in
+            (symbols, Struct, SStructAssign(sexprs))
 
     and check_expr_list symbols lst = 
       let help = List.map (check_expr symbols) lst 
@@ -138,18 +161,31 @@ let check (program) =
       (* checks the types of an assignment *)
     and check_assign lvaluet rvaluet err =
       if lvaluet = rvaluet then () else raise (Failure err)
+    (* and check_struct_members =  *)
 
       (* checks the actual type and the stated type of a definition *)
     and check_defn symbols t id value =
       let (symbols, rt, e') = check_expr symbols value in
-      let err = "illegal assignment " ^ string_of_typ t ^ " = " ^
+      let err = "illegal assignment! " ^ string_of_typ t ^ " = " ^
                 string_of_typ rt ^ " in " ^ string_of_bind (Defn(t, id, value))
       in
-      check_assign t rt err;
-      check_duplicate_binds symbols id;
-      let symbols = StringMap.add id t symbols in
+      (* If it's a struct, the Struct name should be a key in the symbol table *)
+      if StringMap.mem (string_of_typ t) symbols then
+        begin
+        check_duplicate_binds symbols id;
+        let symbols = StringMap.add id rt symbols
+         in
+         (* Add a struct in with the type of the stuct name *)
+        (symbols, SDefn(t, id, (t, e')))
+        end
+      else
+        begin 
+        check_assign t rt err;
+        check_duplicate_binds symbols id;
+        let symbols = StringMap.add id t symbols
+       in
       (symbols, SDefn(t, id, (rt, e')))
-
+      end
     and check_decl symbols t id =
       check_duplicate_binds symbols id;
       let symbols = StringMap.add id t symbols in
@@ -157,7 +193,10 @@ let check (program) =
 
     and check_bind symbols = function
       Decl(t, id) -> check_decl symbols t id
-      | Defn(t, id, value) -> check_defn symbols t id value
+      | Defn(t, id, value) -> begin
+        (* print_endline (map_to_str symbols); (* Print statement should be removed *) *)
+        check_defn symbols t id value;
+      end
 
     and check_bind_list symbols lst = List.map snd (List.map (check_bind symbols) lst)
 
@@ -213,15 +252,18 @@ let check (program) =
           | _ -> raise (Failure "Definition in a struct declaration") in
           let bind_all_members b = List.map(bind_members) b in
           let (sbind : Sast.sbind list) = bind_all_members(s.members) in 
-          (symbols, SStructDecl({sname = s.sname; members = sbind}))
+          (* Add to struct type to symbol table *)
+          let symbols = StringMap.add s.sname (StructSig(s.sname)) symbols in 
+          (symbols, SStructDecl({sname = s.sname; members = sbind})) 
       | _ -> raise (Failure "The statement that was parsed hasn't been implemented yet")
     in
     let built_in_symbols =
       StringMap.add "print" (FunSig([String], Void)) StringMap.empty
     in
-    let (symbols, sbody_checked) = check_stmt_list built_in_symbols program.body in
+    let (symbols, sbody_checked) = check_stmt_list built_in_symbols program.body 
+  in
     {
       sbody = sbody_checked
     }
-in
+  in
 (check_program program)
