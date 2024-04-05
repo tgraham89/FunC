@@ -13,6 +13,11 @@ type bop = Add
           | Div
           | Mod
           | Vbar
+
+type unary_operator =
+  | Pos
+  | Neg
+      
 type expr =
   Literal of int
   | BoolLit of bool
@@ -27,6 +32,7 @@ type expr =
   | Function of bind list * stmt list
   | FuncInvoc of string * expr list
   | Zero
+  | UnaryOp of unary_operator * expr
 and
 bind = Decl of typ * string 
        | Defn of typ * string * expr

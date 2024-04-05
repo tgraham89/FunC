@@ -21,6 +21,9 @@ open Ast
 %token <bool> BLIT
 %token <string> ID
 %token EOF
+%token PLUS MINUS LITERAL
+%right PLUS MINUS
+
 
 %start program_rule
 %type <Ast.program> program_rule
