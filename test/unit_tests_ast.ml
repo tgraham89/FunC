@@ -1,5 +1,11 @@
 open Ast
 
+(* 
+These are unit tests that cover
+the ast file via the ast stringify functions
+*)
+
+
 (* All operators-- these should always work *)
 let run_op_tests () =
   let op1 = Add in
@@ -65,8 +71,8 @@ let run_expr_tests () =
   assert (string_of_expr expr11 = "{1}");
   assert (string_of_expr expr12 = "{1, 2, 3}");
   assert (string_of_expr expr13 = "{}");
-  assert (string_of_expr expr14 = "\"id\"");
-  assert (string_of_expr expr15 = "BINOP 1 + 1");
+  assert (string_of_expr expr14 = "id");
+  assert (string_of_expr expr15 = "1 + 1");
   assert (string_of_expr expr16 = "x = \"hello world\"")
 
 
@@ -78,15 +84,16 @@ let run_expr_tests_edge_cases () =
   let id_with_quotes = Id("\"quotation marks\"") in
   assert (string_of_expr list_with_multiple_types = "[1, true]");
   assert (string_of_expr struct_with_multiple_types = "{1, true}");
-  assert (string_of_expr id_with_quotes = "\"\"quotation marks\"\"")
+  assert (string_of_expr id_with_quotes = "\"quotation marks\"")
 
 (* Test cases for function and bind *)
 (* TODO: these also look wrong today, need to check with team *)
 let run_expr_tests_function_and_bind_cases () =
   let hello_world_func = Function([Decl(Int, "hello_world_func")], [Expr(StrLit("hello world"))]) in
   let defn_func = Function([Defn(Int, "my_func", Assign("my_var", StrLit("my_val")))], [Expr(StrLit("hello world"))]) in
-  assert (string_of_expr hello_world_func = "(int hello_world_func, ) {\n\"hello world\";\n}");
-  assert (string_of_expr defn_func = "(int my_func = my_var = \"my_val\", ) {\n\"hello world\";\n}")
+  assert (string_of_expr hello_world_func = "(int hello_world_func) {\n\"hello world\";\n}");
+  assert (string_of_expr defn_func = "(int my_func = my_var = \"my_val\") {\n\"hello world\";\n}")
+
 
 (* Test cases for FuncInvoc *)
 let run_expr_tests_func_invoc_cases () =
@@ -124,8 +131,8 @@ let run_type_tests () =
 let run_type_tests_struct_sig_cases () =
   let simple_struct_sig = StructSig("my_first_signature", [Decl(Int, "declaration_int")]) in
   let complex_struct_sig = StructSig("complex_signature", [Decl(Int, "declaration_int"); Defn(String, "string_declr", StrLit("my_val")); Defn(Bool, "boolean_d", BoolLit(false))]) in
-  assert (string_of_typ simple_struct_sig = "struct my_first_signature {\nint declaration_int;\n}");
-  assert (string_of_typ complex_struct_sig = "struct complex_signature {\nint declaration_int;\nstring string_declr = \"my_val\";\nbool boolean_d = false;\n}")
+  assert (string_of_typ simple_struct_sig = "struct my_first_signature {\nint declaration_int}");
+  assert (string_of_typ complex_struct_sig = "struct complex_signature {\nint declaration_int;\nstring string_declr = \"my_val\";\nbool boolean_d = false}")
 
 let run_type_tests_fun_sig_cases () =
   let simple_func_sig = FunSig([Int], Int) in

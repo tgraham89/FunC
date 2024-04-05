@@ -41,23 +41,22 @@ program_rule:
 
 typ_list_rule:
   /* nothing */                   { [] }
-  | typ_rule                   { [$1] }
+  | typ_rule                      { [$1] }
   | typ_rule COMMA typ_list_rule  { $1 :: $3 }
 
 bind_list_rule:
-  /* nothing */                 { [] }
-  | bind_rule                   { [$1] }
+  /* nothing */                       { [] }
+  | bind_rule                         { [$1] }
   | bind_rule COMMA bind_list_rule    { $1 :: $3 }
 
 stmt_list_rule:
-    stmt_rule                   { [$1]     }
-    // /* nothing */               { []  }
-    | stmt_list_rule stmt_rule  { $1 @ [$2] }
+    | stmt_rule                         { [$1]     }
+    | stmt_list_rule stmt_rule          { $1 @ [$2] }
 
 expr_list_rule:
-  // /* nothing */                       { [] }
+  /* nothing */                         { [] }
   | expr_rule                           { [$1] }
-  | expr_rule COMMA expr_list_rule    { $1 :: $3 }
+  | expr_rule COMMA expr_list_rule      { $1 :: $3 }
 
 typ_rule:
   INT                                         { Int }
@@ -122,9 +121,9 @@ expr_rule:
   | expr_rule GEQ expr_rule       { Binop ($1, Gequal, $3) }
   | expr_rule AND expr_rule       { Binop ($1, And, $3) }
   | expr_rule OR expr_rule        { Binop ($1, Or, $3) }
-  | expr_rule NOT expr_rule        { Binop ($1, Not, $3) }
+  | expr_rule NOT expr_rule       { Binop ($1, Not, $3) }
   | ID ASSIGN expr_rule           { Assign ($1, $3) }
   | ID LPAREN expr_list_rule RPAREN     { FuncInvoc($1, $3) }
   | LPAREN bind_list_rule RPAREN FUNCARROW LBRACE stmt_list_rule RBRACE { Function($2, $6) }        
   | LPAREN expr_rule RPAREN       { $2 }
-  | VBAR expr_list_rule VBAR  { Struct($2) }
+  /* | VBAR expr_list_rule VBAR  { Struct($2) } */

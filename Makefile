@@ -12,61 +12,71 @@ setup:
 	eval $$(opam env)
 	eval $$(opam env --switch=5.1.1)
 
-semant:
-	eval $$(opam env)
-	ocamlbuild semant.native
+semant: src/semant.ml
+	rm -f src/parser.ml
+	rm -f src/parser.mli
+	ocamlbuild -I src src/semant.native
 
-scanner: scanner.mll
-	eval $$(opam env)
-	ocamlbuild scanner.native
+scanner: src/scanner.mll
+	ocamlbuild -I src src/scanner.native
 
-parser: parser.mly
-	ocamlyacc -v parser.mly
-	rm -f parser.ml
-	rm -f parser.mli
+parser: src/parser.mly
+	ocamlyacc -v src/parser.mly
 
-test2:
-	ocamlbuild test2.native
 
-test1:
-	ocamlbuild test1.native
 
-tests: test1 test2
+
+ast_test:
+	ocamlbuild -I src test/ast_test.native
+
+sast_test:
+	ocamlbuild -I src test/sast_test.native
+
 
 hello_world:
-	ocamlbuild test1.native
-	./test1.native < hello_world.tb > hello_world.output
+	ocamlbuild -I src test/sast_test.native
+	./sast_test.native < test/hello_world.tb
+
+for_loop:
+	ocamlbuild -I src test/sast_test.native
+	./sast_test.native < test/for_loop.tb
+
+
+
 
 
 .PHONY: clean
 clean:
-	rm -f parser.ml
-	rm -f parser.mli
-	rm -f parser.output
+	rm -f src/parser.ml
+	rm -f src/parser.mli
+	rm -f src/parser.output
+	rm -f src/*.native
 	rm -f *.native
 	rm -rf _build
-	rm -f ast.cmi
-	rm -f ast.cmo
-	rm -f ast_test.cmi
-	rm -f ast_test.cmo
+	rm -f src/ast.cmi
+	rm -f src/ast.cmo
+	rm -f test/ast_test.cmi
+	rm -f test/ast_test.cmo
 	rm -f ./test/*.cmi
 	rm -f ./test/*.cmo
 	rm -f ./test/*.native
 	rm -f ./test/*.out
 	rm -f hello_world.output
+	rm -f *.out
+	rm -f /src/*.output
 
-.PHONY: test test_ast test_scanner
-test: test_ast test_scanner
+.PHONY: unit_tests unit_test_ast unit_test_scanner
+
+unit_tests: unit_test_ast unit_test_scanner
 	
-test_ast:
-	ocamlc -o ./test/test_ast.native ast.ml ./test/test_ast.ml
-	rm -f ./test/test_ast.cmi
-	rm -f ./test/test_ast.cmo
-	./test/test_ast.native > ./test/test_ast.out
+unit_test_ast:
+	ocamlbuild -I src test/unit_tests_ast.native
+	rm -f ./test/unit_tests_ast.cmi
+	rm -f ./test/unit_tests_ast.cmo
+	./unit_tests_ast.native > ./unit_tests_ast.out
 
-test_scanner:
-	rm -f ast.cmi
-	rm -f ast.cmo
-	ocamlbuild ./test/test_scanner.native
-	mv test_scanner.native ./test/
-	./test/test_scanner.native > ./test/test_scanner.out
+unit_test_scanner:
+	rm -f /test/ast.cmi
+	rm -f /test/ast.cmo
+	ocamlbuild -I src test/unit_tests_scanner.native
+	./unit_tests_scanner.native > ./unit_tests_scanner.out

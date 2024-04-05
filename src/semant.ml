@@ -50,6 +50,7 @@ let check (program) =
             | (Mod, t1, t2) when t1 != Int && t1 != Float -> raise (Failure "can't mod non-numeric things")
             | (Or, t1, t2) when t1 != Bool -> raise (Failure "Or only accepts booleans")
             | (And, t1, t2) when t1 != Bool -> raise (Failure "Or only accepts booleans")
+            | (Add, t1, t2) -> (symbols, t1, SBinop ((t1, slhs), op, (t2, srhs))) 
             | (Sub, t1, t2) -> (symbols, t1, SBinop ((t1, slhs), op, (t2, srhs))) 
             | (Mult, t1, t2) -> (symbols, t1, SBinop ((t1, slhs), op, (t2, srhs))) 
             | (Div, t1, t2) -> (symbols, t1, SBinop ((t1, slhs), op, (t2, srhs))) 
@@ -176,8 +177,8 @@ let check (program) =
           let (symbols, t, e_checked) = check_expr symbols e in
           (symbols, SExpr(t, e_checked))
       | Bind b ->
-          let (symbols, b_checked) = check_bind symbols b in
-          (symbols, SBind b_checked)
+          let (symbols2, b_checked) = check_bind symbols b in
+          (symbols2, SBind b_checked)
       | If (cond, br) -> let (_, t, scond) = check_expr symbols cond in
         if t = Bool then let (_, sbr) = check_stmt symbols br in (symbols, SIf((t, scond), sbr))
         else raise (Failure "condition must be a boolean")
@@ -189,19 +190,23 @@ let check (program) =
           if t != Bool then raise (Failure "condition must be a boolean")
           else let (_, sstmts) = check_stmt symbols stmts in
           (symbols, SWhile ((t, scond), sstmts))
-      | For (counter, cond, increment, stmts) -> let (_, t, scond) = check_expr symbols cond in
-        if t != Bool then raise (Failure "condition must be a boolean")
+      | For (counter, cond, increment, stmts) -> 
+        print_endline("inside for check");
+        print_endline(string_of_bind counter);
+        print_endline(string_of_expr cond);
+        print_endline(string_of_expr increment);
+        let (symbols2, sbind) = check_bind symbols counter in 
+        let (_, t1, scond) = check_expr symbols2 cond in 
+        if t1 != Bool then raise (Failure "condition must be a boolean")
         else
-          let (_, sbind) = check_bind symbols counter and
-              (_, t1, scond) = check_expr symbols cond and
-              (_, t2, sinc) = check_expr symbols increment and
-              (_, sstmts) = check_stmt symbols stmts in
-              (symbols, SFor(sbind, (t1, scond), (t2, sinc), sstmts)) 
+          let (_, t2, sinc) = check_expr symbols2 increment in
+          let (symbols2, sstmts) = check_stmt symbols2 stmts in
+          (symbols2, SFor(sbind, (t1, scond), (t2, sinc), sstmts)) 
       | Return x -> let (_, y, z) = check_expr symbols x in (symbols, SReturn((y, z)))
-      | _ -> raise (Failure "uhh")
+      | _ -> raise (Failure "The statement that was parsed hasn't been implemented yet")
     in
     let built_in_symbols =
-      StringMap.add "print" (FunSig([Int], Void)) StringMap.empty
+      StringMap.add "print" (FunSig([String], Void)) StringMap.empty
     in
     let (symbols, sbody_checked) = check_stmt_list built_in_symbols program.body in
     {
