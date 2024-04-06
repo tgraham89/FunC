@@ -4,7 +4,6 @@ open Ast
 open Sast
 
 module StringMap = Map.Make(String)
-module StructType = Map.Make(String)
 
 (* Semantic checking of the AST. Returns an SAST if successful,
    throws an exception if something is wrong.
@@ -29,10 +28,7 @@ let print_members_list i = match i with
 
 let print_all_members_list b = List.map(print_members_list) b
 
-          (* print_all_members members; 
-          print_members_list value; *)
-
-(* This helper function checks if the both they names and the types of the 
+(* This helper function checks if the names in the 
    struct instance match the struct declaration. *)
 let compare_struct_decl_assign decl assign = match assign with
   StructAssign(a) -> let rec cmp decl this_assign = 
@@ -47,20 +43,6 @@ let compare_struct_decl_assign decl assign = match assign with
       | _ -> raise (Failure "Not comparing a struct")
     in cmp decl a
   | _ -> raise (Failure "Not comparing a struct")
-
-  (* let compare_struct_typ_decl_assign decl assign = match assign with
-  StructAssign(a) -> let rec cmp decl this_assign = 
-    match (decl, this_assign) with
-      | [], [] -> true
-      | [], _ -> raise (Failure "Trying to assign too many struct variables")
-      | _, [] -> raise (Failure "Missing assignments in struct")
-      | (h :: t), (hh :: tt) -> match (h, hh) with
-      | Decl(typ, str), Assign(sstr, eexp) -> if str <> sstr then 
-                                        raise (Failure "Struct variable names don't match")
-                                        else cmp t tt
-      | _ -> raise (Failure "Not comparing a struct")
-    in cmp decl a
-  | _ -> raise (Failure "Not comparing a struct") *)
 
 (* End Debugger Functions *)
 
@@ -142,6 +124,7 @@ let check (program) =
           end *)
           let expr_members = function (* function to return assignment for 1 expression *)
             Assign(s, e) -> let (syms, typ, sx) = check_expr symbols e in
+            (* print_endline(s); *)
             let (sexp : Sast.sexpr) = (typ, sx) in sexp
             | _ -> raise (Failure "Incorrect statement within struct instance creation") in
             (* apply function to each expression in the struct *)
@@ -200,20 +183,54 @@ let check (program) =
     and check_assign lvaluet rvaluet err =
       if lvaluet = rvaluet then () else raise (Failure err)
 
+      (* This helper function validates the assignment of 
+         varirables within a struct. The struct name is prepended
+         to the variable name to differentiate *)
+    and check_expr_struct symbols struct_name = function
+      Assign(var, e) as ex ->
+          let lt = type_of_identifier symbols (struct_name ^ "." ^ var)
+          and (symbols, rt, e') = check_expr symbols e in
+          let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^
+                    string_of_typ rt ^ " in " ^ string_of_expr ex in
+          check_assign lt rt err;
+          (symbols, lt, SAssign(var, (rt, e')))
+        | _ -> raise (Failure "Not a struct assignment")
+
+
       and check_struct_type_assign symbols value =
           check_expr symbols value
 
-      (* Checks that stuct members are in the expected format *)
+    (* This helper function checks if the types in the 
+   struct instance match the struct declaration. *)
+    and validate_struct_type symbols decl assign struct_name = 
+      match assign with
+      | StructAssign(e) -> let rec validate_helper s d a = match (d, a) with
+          | [], [] -> true
+          | [], _ -> raise (Failure "Trying to assign too many struct variables")
+          | _, [] -> raise (Failure "Missing assignments in struct")
+          | (h :: t), (hh :: tt) -> let (s, rt, e') = check_expr_struct symbols struct_name hh in
+                match h with 
+                  | Decl(typ, str) -> if typ <> rt then begin
+                    (* print_endline("decl type was " ^ string_of_typ typ ^ ", assign type was " ^ string_of_typ rt); *)
+                    raise (Failure "Missing assignments in struct"); end
+                    else validate_helper s t tt
+                  | _ -> raise (Failure "Not comparing a struct")
+          | _ -> raise (Failure "Not comparing a struct")
+              in validate_helper symbols decl e
+          | _ -> raise (Failure "Not comparing a struct")
+
+      (* Checks that struct members are in the expected format *)
     and check_struct_members symbols t value =
       let s = StringMap.find t symbols in
       match s with
       (* Pull name of struct and its members *)
         StructMem(name, members) -> begin 
-          print_all_members members; 
-          print_members_list value;
+          (* print_all_members members;  *)
+          (* print_members_list value; *)
           (* Compare the struct assignment to its declaration *)
           compare_struct_decl_assign members value;
           check_struct_type_assign symbols value;
+          validate_struct_type symbols members value t;
         end
         | _ -> raise (Failure "Not a struct but it looks like a struct")
     
@@ -249,11 +266,11 @@ let check (program) =
 
     and check_bind symbols = function
       Decl(t, id) -> begin
-        print_endline (map_to_str symbols); (* Print statement should be removed *)
+        (* print_endline (map_to_str symbols); (* Print statement should be removed *) *)
         check_decl symbols t id;
       end
       | Defn(t, id, value) -> begin
-        print_endline (map_to_str symbols); (* Print statement should be removed *)
+        (* print_endline (map_to_str symbols); (* Print statement should be removed *) *)
         check_defn symbols t id value;
       end
 
@@ -330,7 +347,7 @@ let check (program) =
           let (sbind : Sast.sbind list) = bind_all_members(s.members) in 
           (* Add to struct type and members to symbol table *)
           let symbols = StringMap.add s.sname (StructMem(s.sname, s.members)) symbols2 in 
-          print_endline (map_to_str symbols); (* Print statement should be removed *) 
+          (* print_endline (map_to_str symbols); (* Print statement should be removed *) *)
           (symbols, SStructDecl({sname = s.sname; members = sbind})) 
       | _ -> raise (Failure "The statement that was parsed hasn't been implemented yet")
     in

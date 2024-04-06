@@ -5,7 +5,6 @@ struct Employeetype {
     int id,
 };
 
-
 Employeetype engineer = {
     name = "John Smith",
     id = 25,
@@ -19,6 +18,6 @@ struct Student {
 
 Student john = {
     full_name = "John Smith",
-    id = "456",
+    id = 456,
     grad_year = 2025,
 };
