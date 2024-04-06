@@ -79,7 +79,6 @@ let rec string_of_sexpr (t, e) =
   | SFor(init, cond, incr, stmt) -> "for (" ^ string_of_sbind init ^ "; " ^ string_of_sexpr cond ^ "; " ^ string_of_sexpr incr ^ ")\n" ^ string_of_sstmt stmt
   | SReturn(value) -> "return " ^ string_of_sexpr value ^ ";"
   | SStructDecl(s) -> "struct " ^ s.sname ^ " {\n" ^ string_of_sbind_list ",\n" s.members ^ ",\n};\n"
-  (* | SStructDecl(s) -> string_of_sexpr ^ s.sname ^ " {\n" ^ string_of_sbind_list ",\n" s.members ^ ",\n};" *)
 
   and string_of_sstmt_list delim = function
   [] -> ""

@@ -11,7 +11,7 @@ module StructType = Map.Make(String)
 
    Check each statement in program.body *)
 
-   (* Debugger Functions *)
+(* Debugger Functions *)
 let map_to_str m = 
   let inners = List.map (fun (k, v) -> k ^ " -> " ^ (string_of_typ v)) (StringMap.bindings m)
   in "[" ^ (String.concat ", " inners) ^ "]"
@@ -23,11 +23,45 @@ let print_members = function
 
 let print_all_members b = List.map(print_members) b
 
-let print_members_list = function
+let print_members_list i = match i with
   Assign (s, e) -> begin print_string s; print_endline(" " ^ string_of_expr e); end
-  | _ -> print_endline ("Incorrect statement within a struct")
+  | _ -> print_endline (string_of_expr i)
 
 let print_all_members_list b = List.map(print_members_list) b
+
+          (* print_all_members members; 
+          print_members_list value; *)
+
+(* This helper function checks if the both they names and the types of the 
+   struct instance match the struct declaration. *)
+let compare_struct_decl_assign decl assign = match assign with
+  StructAssign(a) -> let rec cmp decl this_assign = 
+    match (decl, this_assign) with
+      | [], [] -> true
+      | [], _ -> raise (Failure "Trying to assign too many struct variables")
+      | _, [] -> raise (Failure "Missing assignments in struct")
+      | (h :: t), (hh :: tt) -> match (h, hh) with
+            | Decl(typ, str), Assign(sstr, eexp) -> if str <> sstr then 
+                                        raise (Failure "Struct variable names don't match")
+                                        else cmp t tt
+      | _ -> raise (Failure "Not comparing a struct")
+    in cmp decl a
+  | _ -> raise (Failure "Not comparing a struct")
+
+  (* let compare_struct_typ_decl_assign decl assign = match assign with
+  StructAssign(a) -> let rec cmp decl this_assign = 
+    match (decl, this_assign) with
+      | [], [] -> true
+      | [], _ -> raise (Failure "Trying to assign too many struct variables")
+      | _, [] -> raise (Failure "Missing assignments in struct")
+      | (h :: t), (hh :: tt) -> match (h, hh) with
+      | Decl(typ, str), Assign(sstr, eexp) -> if str <> sstr then 
+                                        raise (Failure "Struct variable names don't match")
+                                        else cmp t tt
+      | _ -> raise (Failure "Not comparing a struct")
+    in cmp decl a
+  | _ -> raise (Failure "Not comparing a struct") *)
+
 (* End Debugger Functions *)
 
 let check (program) = 
@@ -102,6 +136,10 @@ let check (program) =
             and sfunc = SFunction(check_bind_list symbols args, snd (check_stmt_list symbols body)) in
           (symbols, deduced_type, sfunc)
         | StructAssign(exprs) -> 
+          (* begin
+          print_all_members_list exprs;
+          raise (Failure "EXIT"); 
+          end *)
           let expr_members = function (* function to return assignment for 1 expression *)
             Assign(s, e) -> let (syms, typ, sx) = check_expr symbols e in
             let (sexp : Sast.sexpr) = (typ, sx) in sexp
@@ -161,8 +199,24 @@ let check (program) =
       (* checks the types of an assignment *)
     and check_assign lvaluet rvaluet err =
       if lvaluet = rvaluet then () else raise (Failure err)
-    (* and check_struct_members =  *)
 
+      and check_struct_type_assign symbols value =
+          check_expr symbols value
+
+      (* Checks that stuct members are in the expected format *)
+    and check_struct_members symbols t value =
+      let s = StringMap.find t symbols in
+      match s with
+      (* Pull name of struct and its members *)
+        StructMem(name, members) -> begin 
+          print_all_members members; 
+          print_members_list value;
+          (* Compare the struct assignment to its declaration *)
+          compare_struct_decl_assign members value;
+          check_struct_type_assign symbols value;
+        end
+        | _ -> raise (Failure "Not a struct but it looks like a struct")
+    
       (* checks the actual type and the stated type of a definition *)
     and check_defn symbols t id value =
       let (symbols, rt, e') = check_expr symbols value in
@@ -173,9 +227,11 @@ let check (program) =
       if StringMap.mem (string_of_typ t) symbols then
         begin
         check_duplicate_binds symbols id;
+        (* Check that struct members in definition match struct members in the type declaration *)
+        check_struct_members symbols (string_of_typ t) value;
         let symbols = StringMap.add id rt symbols
          in
-         (* Add a struct in with the type of the stuct name *)
+         (* Add a struct in with the type of the struct name *)
         (symbols, SDefn(t, id, (t, e')))
         end
       else
@@ -192,13 +248,31 @@ let check (program) =
       (symbols, SDecl(t, id))
 
     and check_bind symbols = function
-      Decl(t, id) -> check_decl symbols t id
+      Decl(t, id) -> begin
+        print_endline (map_to_str symbols); (* Print statement should be removed *)
+        check_decl symbols t id;
+      end
       | Defn(t, id, value) -> begin
-        (* print_endline (map_to_str symbols); (* Print statement should be removed *) *)
+        print_endline (map_to_str symbols); (* Print statement should be removed *)
         check_defn symbols t id value;
       end
 
     and check_bind_list symbols lst = List.map snd (List.map (check_bind symbols) lst)
+
+    (* Adds each bind (decl) within a struct to the symbol table. Names of a variable
+    within a struct are appended to the name of the struct *)
+    and add_binds_to_table struct_name symbols = function
+      Decl (t, id) -> let key = (struct_name ^ "." ^ id) in
+      let value = t in
+      check_duplicate_binds symbols;
+      StringMap.add key value symbols
+
+    (* Add a bind list within a struct to the symbol table *)
+    and check_bind_list_struct symbols struct_name lst = 
+      (* Create partial to add in struct name *)
+      let add_binds_to_spec_table = add_binds_to_table struct_name in
+      (* Add every bind of the struct into the symbol table *)
+      List.fold_left add_binds_to_spec_table symbols lst
 
     and typ_of_func_body symbols = function
       [] -> Void
@@ -247,13 +321,16 @@ let check (program) =
           let (symbols2, sstmts) = check_stmt symbols2 stmts in
           (symbols2, SFor(sbind, (t1, scond), (t2, sinc), sstmts)) 
       | Return x -> let (_, y, z) = check_expr symbols x in (symbols, SReturn((y, z)))
-      | StructDecl (s) -> let bind_members = function
+      | StructDecl (s) -> 
+        let symbols2 = check_bind_list_struct symbols s.sname s.members in
+          let bind_members = function
           Decl (t, s) -> let (sbind : Sast.sbind) = SDecl (t, s) in sbind
           | _ -> raise (Failure "Definition in a struct declaration") in
           let bind_all_members b = List.map(bind_members) b in
           let (sbind : Sast.sbind list) = bind_all_members(s.members) in 
-          (* Add to struct type to symbol table *)
-          let symbols = StringMap.add s.sname (StructSig(s.sname)) symbols in 
+          (* Add to struct type and members to symbol table *)
+          let symbols = StringMap.add s.sname (StructMem(s.sname, s.members)) symbols2 in 
+          print_endline (map_to_str symbols); (* Print statement should be removed *) 
           (symbols, SStructDecl({sname = s.sname; members = sbind})) 
       | _ -> raise (Failure "The statement that was parsed hasn't been implemented yet")
     in

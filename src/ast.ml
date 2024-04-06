@@ -44,6 +44,7 @@ typ =
   | Float 
   | List of typ
   | StructSig of string (* Used for defining an instance of a struct *)
+  | StructMem of string * bind list (* Used for storing the members of astruct *)
   | FunSig of typ list * typ
   | EmptyList
   | Struct
@@ -128,6 +129,7 @@ string_of_typ = function
   | Struct -> "struct" (* Used for noting that a variable is in a struct *)
   | List t -> "list<" ^ (string_of_typ t) ^ ">"
   | StructSig (name) -> name      (* Used for defining an instance of a struct *)
+  | StructMem (name, members) -> name ^ " " ^ string_of_bind_list "," members    (* Used for storing the members of astruct *)
   | FunSig (args, ret) -> "function<" ^ string_of_typ_list ", " args ^ "> -> " ^ string_of_typ ret 
   | EmptyList -> "[]"
 and
@@ -156,7 +158,7 @@ string_of_stmt = function
     "for (" ^ string_of_bind i ^ "; " ^ string_of_expr e1 ^ "; " 
     ^ string_of_expr e2 ^ ") {\n" ^ string_of_stmt s ^ "}"
   | Return(expr) -> "\treturn " ^ string_of_expr expr ^ ";\n"
-  | StructDecl(s) -> "struct " ^ s.sname ^ " {\n" ^ string_of_bind_list ",\n" s.members ^ ",\n};"
+  | StructDecl(s) -> "struct " ^ s.sname ^ " {\n" ^ string_of_bind_list ",\n" s.members ^ ",\n};\n"
   (* | Struct_decl(n, v) -> "struct " ^ n ^ " {\n" ^ string_of_bind_list "," v ^ "\n};" *)
 and string_of_stmt_list delim = function
   [] -> ""
