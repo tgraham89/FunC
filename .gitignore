@@ -10,3 +10,5 @@ scanner.native
 *.native
 calc.ml
 test.tb
+FunC.code-workspace
+FunC.opam

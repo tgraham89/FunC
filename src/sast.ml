@@ -1,7 +1,10 @@
 open Ast
 
+type sunary_operator = SNeg | SPos
+
 type sexpr = typ * sx
 and sx =
+  | SUnaryOp of sunary_operator * sexpr
   | SLiteral of int
   | SBoolLit of bool
   | SStrLit of string
@@ -11,9 +14,9 @@ and sx =
   | SBinop of sexpr * bop * sexpr
   | SAssign of string * sexpr
   | SListLit of typ * sexpr list
-  | SStruct of sexpr list
   | SFunction of sbind list * sstmt list
   | SFuncInvoc of string * sexpr list
+  | SStructAssign of sexpr list (* Used to define an instance of a struct *)
   | SZero
 and sbind =
   | SDecl of typ * string
@@ -27,6 +30,10 @@ and sstmt =
   | SWhile of sexpr * sstmt
   | SFor of sbind * sexpr * sexpr * sstmt
   | SReturn of sexpr
+  | SStructDecl of {
+        sname: string;
+        members: sbind list;
+        }
 and program = {
   sbody: sstmt list;
 }
@@ -50,6 +57,7 @@ let rec string_of_sexpr (t, e) =
     | SAssign(v, e) -> v ^ " = " ^ string_of_sexpr e
     | SFunction(args, body) -> "(" ^ string_of_sbind_list ", " args ^ ") {\n\t" ^ string_of_sstmt_list "\t" body ^ "\n}"
     | SFuncInvoc(id, args) -> id ^ "(" ^ string_of_sexpr_list ", " args ^ ")"
+    | SStructAssign(e) -> "(" ^ string_of_sexpr_list ", " e ^ ")"
     | _ -> "string_of_sexpr not implemented yet"
     ) ^ ")"
 
@@ -73,6 +81,7 @@ let rec string_of_sexpr (t, e) =
   | SWhile(cond, stmt) -> "while (" ^ string_of_sexpr cond ^ ")\n" ^ string_of_sstmt stmt
   | SFor(init, cond, incr, stmt) -> "for (" ^ string_of_sbind init ^ "; " ^ string_of_sexpr cond ^ "; " ^ string_of_sexpr incr ^ ")\n" ^ string_of_sstmt stmt
   | SReturn(value) -> "return " ^ string_of_sexpr value ^ ";"
+  | SStructDecl(s) -> "struct " ^ s.sname ^ " {\n" ^ string_of_sbind_list ",\n" s.members ^ ",\n};\n"
 
   and string_of_sstmt_list delim = function
   [] -> ""
@@ -80,6 +89,6 @@ let rec string_of_sexpr (t, e) =
   | x :: rest -> string_of_sstmt x ^ delim ^ string_of_sstmt_list delim rest
 
   let string_of_sprogram fdecl =
-    "\n\nSementically checked program: \n\n" ^
+    "\n\nSemantically checked program: \n\n" ^
     String.concat "\n" (List.map string_of_sstmt fdecl.sbody) ^
     "\n"

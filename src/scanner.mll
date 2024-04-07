@@ -30,6 +30,7 @@ rule token = parse
 | '+'      { PLUS }
 | '-'      { MINUS }
 | '/'      { DIVIDE }
+| '.'      { DOT }
 | '*'      { TIMES }
 | '%'      { MOD }
 | '='      { ASSIGN }
@@ -69,7 +70,8 @@ rule token = parse
 | intlit as lxm { LITERAL(int_of_string lxm) }
 | float as lxm { FLOAT_LIT(float_of_string lxm) }
 | char as lxm { CHAR_LIT( String.get lxm 1 ) }
-(* | escape_char as lxm{ CHAR_LIT( String.get (unescape lxm) 1) } Not sure if this is necessary *) 
+(* | escape_char as lxm{ CHAR_LIT( String.get (unescape lxm) 1) } Not sure if this is necessary *)
+| ['A'-'Z']['a'-'z' 'A'-'Z']* as structLit { STRUCT_ID(structLit) } 
 | stringlit { STRING_LIT(lxm) }
 | id as lxm { ID(lxm) }
 | eof { EOF }

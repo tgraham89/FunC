@@ -42,7 +42,9 @@ for_loop:
 	./sast_test.native < test/for_loop.tb
 
 
-
+struct:
+	ocamlbuild -I src test/sast_test.native
+	./sast_test.native < test/struct.tb
 
 
 .PHONY: clean
