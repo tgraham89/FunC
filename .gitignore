@@ -9,3 +9,5 @@ commit_message.txt
 scanner.native
 *.native
 calc.ml
+FunC.code-workspace
+FunC.opam
