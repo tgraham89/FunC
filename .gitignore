@@ -12,3 +12,4 @@ calc.ml
 test.tb
 FunC.code-workspace
 FunC.opam
+test/*.out

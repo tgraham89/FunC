@@ -104,7 +104,10 @@ let check (program) =
             | (Greater, t1, t2) -> (symbols, Bool, SBinop ((t1, slhs), op, (t2, srhs)))
             | (Gequal, t1, t2) -> (symbols, Bool, SBinop ((t1, slhs), op, (t2, srhs)))
             | (Less, t1, t2) -> (symbols, Bool, SBinop ((t1, slhs), op, (t2, srhs)))
-            | (Lequal, t1, t2) -> (symbols, Bool, SBinop ((t1, slhs), op, (t2, srhs))) 
+            | (Lequal, t1, t2) -> (symbols, Bool, SBinop ((t1, slhs), op, (t2, srhs)))
+            | (Equal, t1, t2) -> (symbols, Bool, SBinop ((t1, slhs), op, (t2, srhs)))
+            | (Neq, t1, t2) -> (symbols, Bool, SBinop ((t1, slhs), op, (t2, srhs)))
+            | _ -> raise (Failure "not a binary operator")
           end
         | FuncInvoc (id, args) -> 
           let signature = type_of_identifier symbols id 
@@ -121,6 +124,7 @@ let check (program) =
                 " but arguments of type " ^ string_of_typ_list ", " arg_typs ^ 
                 " were provided."))
             else (symbols, ret, SFuncInvoc (id, sexpr_list))
+          | _ -> raise (Failure "This should only involve function signatures")
           end
         | Function(args, body) -> 
             let deduced_type = FunSig(type_arg_decl_list symbols args, typ_of_func_body symbols body)
@@ -140,7 +144,9 @@ let check (program) =
             let expr_all_members all_sx = List.map(expr_members) all_sx in 
             let (sexprs : Sast.sexpr list) = expr_all_members exprs in
             (symbols, Struct, SStructAssign(sexprs))
-
+        | Zero -> raise (Failure "need to figure out what to do with zero")
+        | StructId (x) -> raise (Failure "StructId not implemented yet")
+        | StructAccess (x, y) -> raise (Failure "StructAccess not implemented yet")
     and check_expr_list symbols lst = 
       let help = List.map (check_expr symbols) lst 
       in List.map (fun (_, x, y) -> (x, y)) help
@@ -224,7 +230,7 @@ let check (program) =
                     raise (Failure "Missing assignments in struct"); end
                     else validate_helper s t tt
                   | _ -> raise (Failure "Not comparing a struct")
-          | _ -> raise (Failure "Not comparing a struct")
+          (* | _ -> raise (Failure "Not comparing a struct") *)
               in validate_helper symbols decl e
           | _ -> raise (Failure "Not comparing a struct")
 
@@ -290,9 +296,9 @@ let check (program) =
     and add_binds_to_table struct_name symbols = function
       Decl (t, id) -> let key = (struct_name ^ "." ^ id) in
       let value = t in
-      check_duplicate_binds symbols;
+      check_duplicate_binds symbols id;
       StringMap.add key value symbols
-
+      | _ -> raise (Failure "You should not be including a variable initialization in a structure definition")
     (* Add a bind list within a struct to the symbol table *)
     and check_bind_list_struct symbols struct_name lst = 
       (* Create partial to add in struct name *)
@@ -358,7 +364,7 @@ let check (program) =
           let symbols = StringMap.add s.sname (StructMem(s.sname, s.members)) symbols2 in 
           (* print_endline (map_to_str symbols); (* Print statement should be removed *) *)
           (symbols, SStructDecl({sname = s.sname; members = sbind})) 
-      | _ -> raise (Failure "The statement that was parsed hasn't been implemented yet")
+      (* | _ -> raise (Failure "The statement that was parsed hasn't been implemented yet") *)
     in
     let built_in_symbols =
       StringMap.add "print" (FunSig([String], Void)) StringMap.empty
