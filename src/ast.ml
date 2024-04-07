@@ -14,6 +14,11 @@ type bop = Add
           | Mod
           | Vbar
           | Dot
+
+type unary_operator =
+  | Pos
+  | Neg
+      
 type expr =
   Literal of int
   | BoolLit of bool
@@ -31,6 +36,7 @@ type expr =
   | StructAccess of expr * expr
   | StructAssign of expr list (* Used to define an instance of a struct *)
   | Zero
+  | UnaryOp of unary_operator * expr
 and
 bind = Decl of typ * string 
        | Defn of typ * string * expr

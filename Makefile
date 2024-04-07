@@ -12,18 +12,19 @@ setup:
 	eval $$(opam env)
 	eval $$(opam env --switch=5.1.1)
 
-semant:
-	eval $$(opam env)
-	ocamlbuild semant.native
+semant: src/semant.ml
+	rm -f src/parser.ml
+	rm -f src/parser.mli
+	ocamlbuild -I src src/semant.native
 
-scanner: scanner.mll
-	eval $$(opam env)
-	ocamlbuild scanner.native
+scanner: src/scanner.mll
+	ocamlbuild -I src src/scanner.native
 
-parser: parser.mly
-	ocamlyacc -v parser.mly
-	rm -f parser.ml
-	rm -f parser.mli
+parser: src/parser.mly
+	ocamlyacc -v src/parser.mly
+
+
+
 
 ast_test:
 	ocamlbuild -I src test/ast_test.native
@@ -31,7 +32,6 @@ ast_test:
 sast_test:
 	ocamlbuild -I src test/sast_test.native
 
-tests: sast_test ast_test
 
 hello_world:
 	ocamlbuild -I src test/sast_test.native
@@ -41,9 +41,11 @@ for_loop:
 	ocamlbuild -I src test/sast_test.native
 	./sast_test.native < test/for_loop.tb
 
+
 struct:
 	ocamlbuild -I src test/sast_test.native
 	./sast_test.native < test/struct.tb
+
 
 .PHONY: clean
 clean:
@@ -62,19 +64,21 @@ clean:
 	rm -f ./test/*.native
 	rm -f ./test/*.out
 	rm -f hello_world.output
+	rm -f *.out
+	rm -f /src/*.output
 
-.PHONY: test test_ast test_scanner
-test: test_ast test_scanner
+.PHONY: unit_tests unit_test_ast unit_test_scanner
+
+unit_tests: unit_test_ast unit_test_scanner
 	
-test_ast:
-	ocamlc -o ./test/test_ast.native src/ast.ml ./test/test_ast.ml
-	rm -f ./test/test_ast.cmi
-	rm -f ./test/test_ast.cmo
-	./test/test_ast.native > ./test/test_ast.out
+unit_test_ast:
+	ocamlbuild -I src test/unit_tests_ast.native
+	rm -f ./test/unit_tests_ast.cmi
+	rm -f ./test/unit_tests_ast.cmo
+	./unit_tests_ast.native > ./unit_tests_ast.out
 
-test_scanner:
-	rm -f ast.cmi
-	rm -f ast.cmo
-	ocamlbuild ./test/test_scanner.native
-	mv test_scanner.native ./test/
-	./test/test_scanner.native > ./test/test_scanner.out
+unit_test_scanner:
+	rm -f /test/ast.cmi
+	rm -f /test/ast.cmo
+	ocamlbuild -I src test/unit_tests_scanner.native
+	./unit_tests_scanner.native > ./unit_tests_scanner.out

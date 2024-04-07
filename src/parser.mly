@@ -23,6 +23,9 @@ open Ast
 %token <string> ID
 %token <string> STRUCT_ID
 %token EOF
+%token PLUS MINUS LITERAL
+%right PLUS MINUS
+
 
 %start program_rule
 %type <Ast.program> program_rule

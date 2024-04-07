@@ -1,7 +1,10 @@
 open Ast
 
+type sunary_operator = SNeg | SPos
+
 type sexpr = typ * sx
 and sx =
+  | SUnaryOp of sunary_operator * sexpr
   | SLiteral of int
   | SBoolLit of bool
   | SStrLit of string

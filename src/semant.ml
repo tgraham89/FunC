@@ -51,6 +51,15 @@ let check (program) =
 
     let rec check_expr symbols = function
           Literal l -> (symbols, Int, SLiteral l)
+          | UnaryOp(op, e) ->
+            let (_, t, e') = check_expr symbols e in
+            begin match (op, t) with
+            | (Pos, Int) -> (symbols, Int, SUnaryOp(SPos, (Int, e')))
+            | (Neg, Int) -> (symbols, Int, SUnaryOp(SNeg, (Int, e')))
+            | (Pos, Float) -> (symbols, Float, SUnaryOp(SPos, (Float, e')))
+            | (Neg, Float) -> (symbols, Float, SUnaryOp(SNeg, (Float, e')))
+            | _ -> raise (Failure "unary operator only applicable to int or float")
+            end
         | BoolLit l -> (symbols, Bool, SBoolLit l)
         | FloatLit l -> (symbols, Float, SFloatLit l)
         | StrLit l -> (symbols, String, SStrLit l)
