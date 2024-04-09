@@ -137,12 +137,15 @@ let check (program) =
           end *)
           let expr_members = function (* function to return assignment for 1 expression *)
             Assign(s, e) -> let (syms, typ, sx) = check_expr symbols e in
-            (* print_endline(s); *)
+            (* print_endline(string_of_typ typ); *)
             let (sexp : Sast.sexpr) = (typ, sx) in sexp
             | _ -> raise (Failure "Incorrect statement within struct instance creation") in
             (* apply function to each expression in the struct *)
             let expr_all_members all_sx = List.map(expr_members) all_sx in 
             let (sexprs : Sast.sexpr list) = expr_all_members exprs in
+            (* print_endline (map_to_str symbols); (* Print statement should be removed *) *)
+            (* print_endline (string_of_sexpr_list ";" sexprs); (* Print statement should be removed *) *)
+            (* print_endline (string_of_expr_list ";" exprs); (* Print statement should be removed *) *)
             (symbols, Struct, SStructAssign(sexprs))
         | Zero -> raise (Failure "need to figure out what to do with zero")
         | StructId (x) -> raise (Failure "StructId not implemented yet")
@@ -208,6 +211,7 @@ let check (program) =
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^
                     string_of_typ rt ^ " in " ^ string_of_expr ex in
           check_assign lt rt err;
+          (* print_endline (map_to_str symbols); (* Print statement should be removed *) *)
           (symbols, lt, SAssign(var, (rt, e')))
         | _ -> raise (Failure "Not a struct assignment")
 
@@ -261,7 +265,8 @@ let check (program) =
         check_duplicate_binds symbols id;
         (* Check that struct members in definition match struct members in the type declaration *)
         check_struct_members symbols (string_of_typ t) value;
-        let symbols = StringMap.add id rt symbols
+        print_endline(string_of_typ t);
+        let symbols = StringMap.add id t symbols
          in
          (* Add a struct in with the type of the struct name *)
         (symbols, SDefn(t, id, (t, e')))
@@ -362,7 +367,7 @@ let check (program) =
           let (sbind : Sast.sbind list) = bind_all_members(s.members) in 
           (* Add to struct type and members to symbol table *)
           let symbols = StringMap.add s.sname (StructMem(s.sname, s.members)) symbols2 in 
-          (* print_endline (map_to_str symbols); (* Print statement should be removed *) *)
+          print_endline (map_to_str symbols); (* Print statement should be removed *)
           (symbols, SStructDecl({sname = s.sname; members = sbind})) 
       (* | _ -> raise (Failure "The statement that was parsed hasn't been implemented yet") *)
     in
