@@ -118,7 +118,8 @@ let rec string_of_expr = function
   | FuncInvoc(id, args) -> id ^ "(" ^ string_of_expr_list ", " args ^ ")"
   | StructAssign(e) -> "{\n" ^ string_of_expr_list ",\n" e ^ ",\n}"
   | StructAccess(v, m) -> string_of_expr v ^ "." ^ string_of_expr m
-  | UnaryOp(op, ex) -> string_of_expr ex ^ (begin match op with Neg -> "--" | Pos -> "++" end)
+  | UnaryOp(op, ex) -> match op with Neg -> "-(" ^ string_of_expr ex ^ ")"
+                                    | Pos -> "+(" ^  string_of_expr ex ^ ")"
   (* | StructCreate(v) -> "{\n" ^ string_of_stmt_list "" v ^ "};" *)
 and
 string_of_expr_list delim = function

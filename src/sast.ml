@@ -58,6 +58,8 @@ let rec string_of_sexpr (t, e) =
     | SFunction(args, body) -> "(" ^ string_of_sbind_list ", " args ^ ") {\n\t" ^ string_of_sstmt_list "\t" body ^ "\n}"
     | SFuncInvoc(id, args) -> id ^ "(" ^ string_of_sexpr_list ", " args ^ ")"
     | SStructAssign(e) -> "(" ^ string_of_sexpr_list ", " e ^ ")"
+    | SUnaryOp(op, ex) -> match op with SNeg -> "-" ^ string_of_sexpr ex ^ ""
+                                    | SPos -> "+" ^  string_of_sexpr ex ^ ""
     | _ -> "string_of_sexpr not implemented yet"
     ) ^ ")"
 

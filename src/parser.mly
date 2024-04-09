@@ -23,8 +23,8 @@ open Ast
 %token <string> ID
 %token <string> STRUCT_ID
 %token EOF
-%token PLUS MINUS LITERAL
-%right PLUS MINUS
+// %token PLUS MINUS LITERAL
+// %right PLUS MINUS
 
 
 %start program_rule
@@ -127,8 +127,10 @@ expr_rule:
   | STRUCT_ID                     { StructId $1 }
   | LBRACK expr_list_rule RBRACK  { ListLit($2) }
   | ID                            { Id $1 }
-  | PLUS LITERAL                  { Literal $2 }
-  | MINUS LITERAL                 { Binop(Zero, Sub, Literal($2)) }
+  | PLUS expr_rule  { UnaryOp (Pos, $2) }
+  | MINUS expr_rule { UnaryOp (Neg, $2) }
+  // | PLUS LITERAL                  { Literal $2 }
+  // | MINUS expr_rule                 { Binop(0, Sub, $2) }
   | expr_rule PLUS expr_rule      { Binop ($1, Add, $3) }
   | expr_rule MINUS expr_rule     { Binop ($1, Sub, $3) }
   | expr_rule TIMES expr_rule     { Binop ($1, Mult, $3) }
