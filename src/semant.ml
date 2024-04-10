@@ -143,13 +143,21 @@ let check (program) =
             (* apply function to each expression in the struct *)
             let expr_all_members all_sx = List.map(expr_members) all_sx in 
             let (sexprs : Sast.sexpr list) = expr_all_members exprs in
-            (* print_endline (map_to_str symbols); (* Print statement should be removed *) *)
+            print_endline (map_to_str symbols); (* Print statement should be removed *) 
             (* print_endline (string_of_sexpr_list ";" sexprs); (* Print statement should be removed *) *)
             (* print_endline (string_of_expr_list ";" exprs); (* Print statement should be removed *) *)
             (symbols, Struct, SStructAssign(sexprs))
         | Zero -> raise (Failure "need to figure out what to do with zero")
-        | StructId (x) -> raise (Failure "StructId not implemented yet")
-        | StructAccess (x, y) -> raise (Failure "StructAccess not implemented yet")
+        | StructId (id) -> (symbols, type_of_identifier symbols id, SStructId id)
+        | StructAccess (str) -> let (_, typ, str') = check_expr symbols str in
+          (* let (symbols2, typ, exp) = check_expr symbols str in *)
+          (* let typ = type_of_identifier symbols (string_of_expr str ^ "." ^ string_of_expr mem) in *)
+          (* (symbols, typ, SStructAccess((typ, str'))) *)
+          (symbols, typ, SStructId (string_of_expr str))
+        (* let (symbols', typ', exp') = check_expr symbols2  *)
+        (* print_endline(string_of_typ typ ^ "HOT SHIT"); *)
+        (* print_endline(string_of_sexpr exp ^ "MORE HOT SHIT"); *)
+        (* raise (Failure "StructAccess not implemented yet") *)
     and check_expr_list symbols lst = 
       let help = List.map (check_expr symbols) lst 
       in List.map (fun (_, x, y) -> (x, y)) help
@@ -221,10 +229,10 @@ let check (program) =
 
     (* This helper function checks if the types in the 
    struct instance match the struct declaration. *)
-    and validate_struct_type symbols decl assign struct_name = 
+    and validate_struct_type symbols decl assign struct_name struct_id = 
       match assign with
       | StructAssign(e) -> let rec validate_helper s d a = match (d, a) with
-          | [], [] -> true
+          | [], [] -> s
           | [], _ -> raise (Failure "Trying to assign too many struct variables")
           | _, [] -> raise (Failure "Missing assignments in struct")
           | (h :: t), (hh :: tt) -> let (s, rt, e') = check_expr_struct symbols struct_name hh in
@@ -232,24 +240,27 @@ let check (program) =
                   | Decl(typ, str) -> if typ <> rt then begin
                     (* print_endline("decl type was " ^ string_of_typ typ ^ ", assign type was " ^ string_of_typ rt); *)
                     raise (Failure "Missing assignments in struct"); end
-                    else validate_helper s t tt
+                    else 
+                      let sym = StringMap.add (struct_id ^ "." ^ str) rt s in
+                      validate_helper sym t tt
                   | _ -> raise (Failure "Not comparing a struct")
           (* | _ -> raise (Failure "Not comparing a struct") *)
               in validate_helper symbols decl e
           | _ -> raise (Failure "Not comparing a struct")
 
       (* Checks that struct members are in the expected format *)
-    and check_struct_members symbols t value =
+    and check_struct_members symbols t value id =
       let s = StringMap.find t symbols in
       match s with
       (* Pull name of struct and its members *)
         StructMem(name, members) -> begin 
-          (* print_all_members members;  *)
+          print_all_members members; 
           (* print_members_list value; *)
           (* Compare the struct assignment to its declaration *)
           compare_struct_decl_assign members value;
           check_struct_type_assign symbols value;
-          validate_struct_type symbols members value t;
+          let symbols2 = validate_struct_type symbols members value t id in
+          symbols2
         end
         | _ -> raise (Failure "Not a struct but it looks like a struct")
     
@@ -264,9 +275,12 @@ let check (program) =
         begin
         check_duplicate_binds symbols id;
         (* Check that struct members in definition match struct members in the type declaration *)
-        check_struct_members symbols (string_of_typ t) value;
+        let symbols2 = check_struct_members symbols (string_of_typ t) value id in
         print_endline(string_of_typ t);
-        let symbols = StringMap.add id t symbols
+        print_endline(id ^ "CRAP");
+        print_endline(string_of_expr value);
+        (* let symbols2 = check_bind_list_struct symbols id s.members in *)
+        let symbols = StringMap.add id t symbols2
          in
          (* Add a struct in with the type of the struct name *)
         (symbols, SDefn(t, id, (t, e')))
@@ -302,6 +316,7 @@ let check (program) =
       Decl (t, id) -> let key = (struct_name ^ "." ^ id) in
       let value = t in
       check_duplicate_binds symbols id;
+      print_endline(id ^ "WOOO");
       StringMap.add key value symbols
       | _ -> raise (Failure "You should not be including a variable initialization in a structure definition")
     (* Add a bind list within a struct to the symbol table *)
