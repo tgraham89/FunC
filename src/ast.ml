@@ -33,7 +33,8 @@ type expr =
   | Function of bind list * stmt list
   | FuncInvoc of string * expr list
   (* | StructCreate of string * stmt list *)
-  | StructAccess of expr * expr
+  (* | StructAccess of string * string *)
+  | StructAccess of expr
   | StructAssign of expr list (* Used to define an instance of a struct *)
   | Zero
   | UnaryOp of unary_operator * expr
@@ -117,10 +118,9 @@ let rec string_of_expr = function
   | Function(args, body) -> "(" ^ string_of_bind_list ", " args ^ ") {\n" ^ string_of_stmt_list "" body ^ "}"
   | FuncInvoc(id, args) -> id ^ "(" ^ string_of_expr_list ", " args ^ ")"
   | StructAssign(e) -> "{\n" ^ string_of_expr_list ",\n" e ^ ",\n}"
-  | StructAccess(v, m) -> string_of_expr v ^ "." ^ string_of_expr m
+  | StructAccess(str) -> string_of_expr str
   | UnaryOp(op, ex) -> match op with Neg -> "-(" ^ string_of_expr ex ^ ")"
                                     | Pos -> "+(" ^  string_of_expr ex ^ ")"
-  (* | StructCreate(v) -> "{\n" ^ string_of_stmt_list "" v ^ "};" *)
 and
 string_of_expr_list delim = function
   [] -> ""

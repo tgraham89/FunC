@@ -16,6 +16,8 @@ and sx =
   | SListLit of typ * sexpr list
   | SFunction of sbind list * sstmt list
   | SFuncInvoc of string * sexpr list
+  | SStructId of string
+  | SStructAccess of sexpr
   | SStructAssign of sexpr list (* Used to define an instance of a struct *)
   | SZero
 and sbind =
@@ -53,10 +55,14 @@ let rec string_of_sexpr (t, e) =
     | SListLit(ty, lst) -> "( list of " ^ string_of_typ ty ^ ": [" ^ string_of_sexpr_list ", " lst ^ "]" 
     (* | SStruct(lst) -> "{" ^ string_of_sexpr_list ", " lst ^ "}"  *)
     | SId(s) -> s
+    | SStructId(s) -> s
     | SBinop(e1, o, e2) -> string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
     | SAssign(v, e) -> v ^ " = " ^ string_of_sexpr e
     | SFunction(args, body) -> "(" ^ string_of_sbind_list ", " args ^ ") {\n\t" ^ string_of_sstmt_list "\t" body ^ "\n}"
     | SFuncInvoc(id, args) -> id ^ "(" ^ string_of_sexpr_list ", " args ^ ")"
+    (* | SStructAccess(str, mem) -> "(" ^ str ^ "." ^ mem ^ ")" *)
+    (* | SStructAccess(str, mem) -> "(" ^ string_of_sexpr str ^ "." ^ string_of_sexpr mem ^ ")" *)
+    | SStructAccess(str) -> string_of_sexpr str
     | SStructAssign(e) -> "(" ^ string_of_sexpr_list ", " e ^ ")"
     | SUnaryOp(op, ex) -> match op with SNeg -> "-" ^ string_of_sexpr ex ^ ""
                                     | SPos -> "+" ^  string_of_sexpr ex ^ ""
