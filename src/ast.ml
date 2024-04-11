@@ -118,12 +118,9 @@ let rec string_of_expr = function
   | Function(args, body) -> "(" ^ string_of_bind_list ", " args ^ ") {\n" ^ string_of_stmt_list "" body ^ "}"
   | FuncInvoc(id, args) -> id ^ "(" ^ string_of_expr_list ", " args ^ ")"
   | StructAssign(e) -> "{\n" ^ string_of_expr_list ",\n" e ^ ",\n}"
-  (* | StructAccess(str, mem) -> string_of_expr str ^ "." ^ string_of_expr mem *)
   | StructAccess(str) -> string_of_expr str
-  (* | StructAccess(str, mem) -> str ^ "." ^ mem *)
   | UnaryOp(op, ex) -> match op with Neg -> "-(" ^ string_of_expr ex ^ ")"
                                     | Pos -> "+(" ^  string_of_expr ex ^ ")"
-  (* | StructCreate(v) -> "{\n" ^ string_of_stmt_list "" v ^ "};" *)
 and
 string_of_expr_list delim = function
   [] -> ""

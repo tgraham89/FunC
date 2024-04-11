@@ -30,12 +30,9 @@ Student jane = {
     grad_year = 2028,
 };
 
-Student helen = {
-    full_name = "Jane Doe",
-    id = 23,
-    grad_year = 2028,
-};
-
 i = 2;
 
 john.grad_year;
+engineer.id;
+engineer.name;
+jane.full_name;
