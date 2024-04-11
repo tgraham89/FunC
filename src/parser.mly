@@ -153,4 +153,4 @@ expr_rule:
   // | STRUCT STRUCT_ID LBRACE stmt_list_rule RBRACE { StructCreate($2, $4)}
   // | ID DOT ID                     { StructAccess (StructId($1), Id($3))}
   | ID DOT ID                     { StructAccess (StructId($1 ^ "." ^ $3))}
-  // | ID DOT ID ASSIGN expr_rule {StructAssign(Id($1), Id($3), $5)}
+  | ID DOT ID ASSIGN expr_rule {Assign($1 ^ "." ^ $3, $5)}
