@@ -38,7 +38,7 @@ let print_all_members_list b = List.map(print_members_list) b
 let compare_struct_decl_assign decl assign = match assign with
   StructAssign(a) -> let rec cmp decl this_assign = 
     match (decl, this_assign) with
-      | [], [] -> true
+      | [], [] -> ()
       | [], _ -> raise (Failure "Trying to assign too many struct variables")
       | _, [] -> raise (Failure "Missing assignments in struct")
       | (h :: t), (hh :: tt) -> match (h, hh) with
@@ -281,7 +281,7 @@ let check (program) =
         StructMem(name, members) -> begin 
           (* Compare the struct assignment to its declaration *)
           compare_struct_decl_assign members value;
-          check_struct_type_assign scopes value;
+          let _ = check_struct_type_assign scopes value in
           let scopes2 = validate_struct_type scopes members value t id in
           scopes2
         end
