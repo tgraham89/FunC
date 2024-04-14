@@ -95,10 +95,10 @@ let run_expr_tests_function_and_bind_cases () =
   assert (string_of_expr defn_func = "(int my_func = my_var = \"my_val\") {\n\"hello world\";\n}")
 
 
-(* Test cases for FuncInvoc *)
+(* Test cases for Call *)
 let run_expr_tests_func_invoc_cases () =
-  let basic_invocation = FuncInvoc("my_first_func_invoc", [Literal 1; Literal 2; Literal 3]) in
-  let multiple_arg_invocation = FuncInvoc("multiple_types_of_args", [Literal 1; BoolLit(true); ChrLit('c')]) in
+  let basic_invocation = Call("my_first_func_invoc", [Literal 1; Literal 2; Literal 3]) in
+  let multiple_arg_invocation = Call("multiple_types_of_args", [Literal 1; BoolLit(true); ChrLit('c')]) in
   assert (string_of_expr basic_invocation = "my_first_func_invoc(1, 2, 3)");
   assert (string_of_expr multiple_arg_invocation = "multiple_types_of_args(1, true, c)")
 

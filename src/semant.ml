@@ -109,21 +109,22 @@ let check (program) =
             | (Neq, t1, t2) -> (symbols, Bool, SBinop ((t1, slhs), op, (t2, srhs)))
             | _ -> raise (Failure "not a binary operator")
           end
-        | FuncInvoc (id, args) -> 
-          let signature = type_of_identifier symbols id 
+        | Call (callable, args) -> 
+          let signature = typ_of_expr symbols callable
           and num_args = List.length args 
           and arg_typs = typ_arg_list symbols args 
+          and (_, call_type, scallable) = check_expr symbols callable
           and sexpr_list = check_expr_list symbols args in 
           begin
           match (signature, args, num_args, arg_typs) with 
           (FunSig(expected_args, _), _, num_args, _) when num_args != (List.length expected_args) -> 
-            raise (Failure (id ^ " expects " ^ string_of_int (List.length expected_args) ^ 
+            raise (Failure ("Expects " ^ string_of_int (List.length expected_args) ^ 
             " but " ^ string_of_int (List.length expected_args) ^ " were provided."))
           | (FunSig(expected_args, ret), args, _, arg_typs) ->
-              if expected_args <> arg_typs then raise (Failure (id ^ " expects arguments of type " ^ string_of_typ_list ", " expected_args ^ 
+              if expected_args <> arg_typs then raise (Failure ("Expects arguments of type " ^ string_of_typ_list ", " expected_args ^ 
                 " but arguments of type " ^ string_of_typ_list ", " arg_typs ^ 
                 " were provided."))
-            else (symbols, ret, SFuncInvoc (id, sexpr_list))
+            else (symbols, ret, SCall ((call_type, scallable), sexpr_list))
           | _ -> raise (Failure "This should only involve function signatures")
           end
         | Function(args, body) -> 
@@ -208,7 +209,6 @@ let check (program) =
           (* print_endline (map_to_str symbols); (* Print statement should be removed *) *)
           (symbols, lt, SAssign(var, (rt, e')))
         | _ -> raise (Failure "Not a struct assignment")
-
 
       and check_struct_type_assign symbols value =
           check_expr symbols value

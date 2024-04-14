@@ -15,7 +15,7 @@ and sx =
   | SAssign of string * sexpr
   | SListLit of typ * sexpr list
   | SFunction of sbind list * sstmt list
-  | SFuncInvoc of string * sexpr list
+  | SCall of sexpr * sexpr list
   | SStructId of string
   | SStructAccess of sexpr
   | SStructAssign of sexpr list (* Used to define an instance of a struct *)
@@ -59,7 +59,8 @@ let rec string_of_sexpr (t, e) =
     | SBinop(e1, o, e2) -> string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
     | SAssign(v, e) -> v ^ " = " ^ string_of_sexpr e
     | SFunction(args, body) -> "(" ^ string_of_sbind_list ", " args ^ ") {\n\t" ^ string_of_sstmt_list "\t" body ^ "\n}"
-    | SFuncInvoc(id, args) -> id ^ "(" ^ string_of_sexpr_list ", " args ^ ")"
+    | SCall(sx, args) -> string_of_sexpr sx ^ 
+                        "(" ^ string_of_sexpr_list ", " args ^ ")"
     (* | SStructAccess(str, mem) -> "(" ^ str ^ "." ^ mem ^ ")" *)
     (* | SStructAccess(str, mem) -> "(" ^ string_of_sexpr str ^ "." ^ string_of_sexpr mem ^ ")" *)
     | SStructAccess(str) -> string_of_sexpr str
