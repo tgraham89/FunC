@@ -1,0 +1,22 @@
+
+int a;
+
+function<> -> int main = () => {
+    string a = "1";
+    print(a);
+    print("hello, world");
+    return 0;
+};
+
+a + 1;
+main();
+
+
+
+string y = "a";
+
+for (int x = 0; x < 5; x = x + 1) {
+    int y = 0;
+    y + 1;
+}
+print(y);

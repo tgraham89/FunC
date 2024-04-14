@@ -67,7 +67,6 @@ let rec string_of_sexpr (t, e) =
     | SStructAssign(e) -> "(" ^ string_of_sexpr_list ", " e ^ ")"
     | SUnaryOp(op, ex) -> match op with SNeg -> "-" ^ string_of_sexpr ex ^ ""
                                     | SPos -> "+" ^  string_of_sexpr ex ^ ""
-    | _ -> "string_of_sexpr not implemented yet"
     ) ^ ")"
 
   (* todo need to add the other sexpr's *)
