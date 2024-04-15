@@ -1,6 +1,6 @@
 (* Top-level of the MicroC compiler: scan & parse the input,
-check the resulting AST and generate an SAST from it, generate LLVM IR,
-and dump the module *)
+   check the resulting AST and generate an SAST from it, generate LLVM IR,
+   and dump the module *)
 
 type action = Ast | Sast | LLVM_IR
 
@@ -17,8 +17,8 @@ let () =
   Arg.parse speclist (fun filename -> channel := open_in filename) usage_msg;
 
   let lexbuf = Lexing.from_channel !channel in
+  let ast = Parser.program_rule Scanner.token lexbuf in
 
-  let ast = Microcparse.program Scanner.token lexbuf in
   match !action with
     Ast -> print_string (Ast.string_of_program ast)
   | _ -> let sast = Semant.check ast in
@@ -26,3 +26,9 @@ let () =
       Ast     -> ()
     | Sast    -> print_string (Sast.string_of_sprogram sast)
     | LLVM_IR -> print_string (Llvm.string_of_llmodule (Irgen.translate sast))
+
+
+
+
+
+
