@@ -59,7 +59,9 @@ let find_in_scope id scope =
 
 let rec find_in_scopes id = function
   | [] -> raise (Failure ("Undeclared identifier " ^ id))
-  | scope :: tail -> (
+  | scope :: tail -> 
+    (* print_endline("finding "  ^ id ^ " in scopes: " ^ list_map_to_str [scope]); *)
+    (  
       try find_in_scope id scope
       with Not_found -> find_in_scopes id tail
     )
@@ -169,9 +171,16 @@ let check (program) =
             let help = function Decl (x, y) -> (x, y) | _ -> raise (Failure "shouldn't happen") in
             let f acc bnd = let (ty, id) = help bnd in add_to_top_scope id ty acc in
             let scopes = init_new_scope scopes in
-            let func_binds = List.fold_left f scopes args in
-            let sfunc = SFunction(check_bind_list scopes args, snd (check_stmt_list func_binds body))
-            and deduced_type = FunSig(type_arg_decl_list scopes args, typ_of_func_body scopes body)
+            let (scopes, arg_bind_list) = check_bind_list scopes args in
+            let arg_types = 
+              let help x =
+              begin
+                match x with
+                SDecl(t, _) -> t | _ -> raise (Failure "Function argument declarations must look like \"int x\"")
+              end
+              in List.rev (List.map help arg_bind_list) in
+            let deduced_type = FunSig(arg_types, typ_of_func_body scopes body)
+            and sfunc = SFunction(arg_bind_list, snd (check_stmt_list scopes body))
           in
           (finish_scope scopes, deduced_type, sfunc)
         | StructAssign(exprs) ->
@@ -203,29 +212,6 @@ let check (program) =
       (* takes an identifier and returns its type *)
     and type_of_identifier scopes s =
       find_in_scopes s scopes
-
-      (* takes in a list of arguments of a function definition/declaration and
-         returns their types *)
-    and type_arg_decl_list scopes lst = 
-      (* Brendan: I think that this code is innocuous, but unnecessary *)
-      let filtered = let rec h = function 
-        [] -> [] | x :: rest -> begin 
-                                  match x with 
-                                  Decl(_, _) -> x :: (h rest) 
-                                  | _ -> h rest 
-                                end in h lst in
-      let sdecls = 
-          List.map (fun x ->  begin 
-                                match x with 
-                                Decl(y, z) -> check_decl scopes y z 
-                                | _ -> raise (Failure "shouldn't see this") 
-                              end) filtered in
-      let help x = 
-      begin
-        match x with
-        (_, SDecl(t, _)) -> t | _ -> raise (Failure "Function argument declarations must look like \"int x\"")
-      end
-    in List.map help sdecls
 
     (* checks for duplicate bindings in top scope*)
     and check_duplicate_binds scopes id =
@@ -331,7 +317,13 @@ let check (program) =
         check_defn scopes t id value;
       end
 
-    and check_bind_list scopes lst = List.map snd (List.map (check_bind scopes) lst)
+    and check_bind_list scopes lst = 
+      let process_bind (current_scopes, binds_acc) bind =
+      let (updated_scopes, new_bind) = check_bind current_scopes bind in
+      (updated_scopes, new_bind :: binds_acc)
+    in
+    let (final_scopes, reversed_sbinds) = List.fold_left process_bind (scopes, []) lst in
+    (final_scopes, List.rev reversed_sbinds)
 
     (* Adds each bind (decl) within a struct to the symbol table. Names of a variable
     within a struct are appended to the name of the struct *)
