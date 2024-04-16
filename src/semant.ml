@@ -78,7 +78,7 @@ let add_to_top_scope id typ scopes=
       let updated_scope = StringMap.add id typ top_scope in
       updated_scope :: tail
 
-let init_new_scope scopes = StringMap.empty :: scopes
+let init_new_scope scopes = (List.hd scopes) :: scopes
 
 let finish_scope = function
   | [] -> raise (Failure "No scopes exist")
@@ -165,13 +165,16 @@ let check (program) =
             else (scopes, ret, SCall ((call_type, scallable), sexpr_list))
           | _ -> raise (Failure "This should only involve function signatures")
           end
-        | Function(args, body) -> 
+        | Function(args, body) ->
+            let help = function Decl (x, y) -> (x, y) | _ -> raise (Failure "shouldn't happen") in
+            let f acc bnd = let (ty, id) = help bnd in add_to_top_scope id ty acc in
             let scopes = init_new_scope scopes in
-            let deduced_type = FunSig(type_arg_decl_list scopes args, typ_of_func_body scopes body)
-            and sfunc = SFunction(check_bind_list scopes args, snd (check_stmt_list scopes body))
+            let func_binds = List.fold_left f scopes args in
+            let sfunc = SFunction(check_bind_list scopes args, snd (check_stmt_list func_binds body))
+            and deduced_type = FunSig(type_arg_decl_list scopes args, typ_of_func_body scopes body)
           in
           (finish_scope scopes, deduced_type, sfunc)
-        | StructAssign(exprs) -> 
+        | StructAssign(exprs) ->
           let expr_members = function (* function to return assignment for 1 expression *)
             Assign(s, e) -> let (syms, typ, sx) = check_expr scopes e in
             (* print_endline(string_of_typ typ); *)

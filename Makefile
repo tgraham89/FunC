@@ -41,6 +41,9 @@ for_loop:
 	ocamlbuild -I src test/sast_test.native
 	./sast_test.native < test/for_loop.tb
 
+function:
+	ocamlbuild -I src test/sast_test.native
+	./sast_test.native < test/function.tb
 
 struct:
 	ocamlbuild -I src test/sast_test.native
