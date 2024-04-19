@@ -1,6 +1,2 @@
-function<> -> int main = () => {
-    print("hello, world");
-    return 0;
-};
-
-main();
+int a = 1;
+int b = a + 1;
