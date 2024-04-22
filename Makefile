@@ -23,15 +23,15 @@ scanner: src/scanner.mll
 parser: src/parser.mly
 	ocamlyacc -v src/parser.mly
 
-
-
-
 ast_test:
 	ocamlbuild -I src test/ast_test.native
 
 sast_test:
 	ocamlbuild -I src test/sast_test.native
 
+anon:
+	ocamlbuild -I src test/sast_test.native
+	./sast_test.native < test/anonymous_function.tb
 
 hello_world:
 	ocamlbuild -I src test/sast_test.native
@@ -41,6 +41,9 @@ for_loop:
 	ocamlbuild -I src test/sast_test.native
 	./sast_test.native < test/for_loop.tb
 
+function:
+	ocamlbuild -I src test/sast_test.native
+	./sast_test.native < test/function.tb
 
 struct:
 	ocamlbuild -I src test/sast_test.native

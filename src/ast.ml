@@ -18,7 +18,8 @@ type bop = Add
 type unary_operator =
   | Pos
   | Neg
-      
+  
+
 type expr =
   Literal of int
   | BoolLit of bool
@@ -31,13 +32,18 @@ type expr =
   | ListLit of expr list
   | StructId of string
   | Function of bind list * stmt list
-  | FuncInvoc of string * expr list
+  | Call of expr * expr list
   (* | StructCreate of string * stmt list *)
   (* | StructAccess of string * string *)
   | StructAccess of expr
   | StructAssign of expr list (* Used to define an instance of a struct *)
   | Zero
   | UnaryOp of unary_operator * expr
+and
+func = {
+  formals : bind list;
+  body : stmt list;
+}
 and
 bind = Decl of typ * string 
        | Defn of typ * string * expr
@@ -116,7 +122,11 @@ let rec string_of_expr = function
   | Binop(e1, o, e2) -> string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Assign(v, e) -> v ^ " = " ^ string_of_expr e
   | Function(args, body) -> "(" ^ string_of_bind_list ", " args ^ ") {\n" ^ string_of_stmt_list "" body ^ "}"
-  | FuncInvoc(id, args) -> id ^ "(" ^ string_of_expr_list ", " args ^ ")"
+  | Call(x, args) -> begin match x with
+      Id id -> id ^ "(" ^ string_of_expr_list ", " args ^ ")"
+      | Function(_, _) as y -> string_of_expr y ^ "(" 
+        ^ string_of_expr_list ")" args ^ ")"
+      | _ -> raise (Failure "only functions are callable types") end
   | StructAssign(e) -> "{\n" ^ string_of_expr_list ",\n" e ^ ",\n}"
   | StructAccess(str) -> string_of_expr str
   | UnaryOp(op, ex) -> match op with Neg -> "-(" ^ string_of_expr ex ^ ")"

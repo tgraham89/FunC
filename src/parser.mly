@@ -99,7 +99,7 @@ closed_stmt:
   | simple_stmt                                                             { $1 }
 
 struct_member_rule:
-  struct_member                                                             {[$1] }
+  struct_member                                                             { [$1] }
   | struct_member_rule struct_member                                        {$1 @ [$2]}
 
 struct_member:
@@ -117,6 +117,11 @@ simple_stmt:
   | bind_rule SEMI                                                        { Bind $1                }
   | LBRACE stmt_list_rule RBRACE                                          { Block $2               }
   | RETURN expr_rule SEMI                                                 { Return $2              }
+
+
+func_rule:
+  LPAREN bind_list_rule RPAREN FUNCARROW LBRACE stmt_list_rule RBRACE { Function($2, $6) }        
+
 
 expr_rule:
   | BLIT                          { BoolLit $1            }
@@ -146,8 +151,9 @@ expr_rule:
   | expr_rule OR expr_rule        { Binop ($1, Or, $3) }
   | expr_rule NOT expr_rule       { Binop ($1, Not, $3) }
   | ID ASSIGN expr_rule           { Assign ($1, $3) }
-  | ID LPAREN expr_list_rule RPAREN     { FuncInvoc($1, $3) }
-  | LPAREN bind_list_rule RPAREN FUNCARROW LBRACE stmt_list_rule RBRACE { Function($2, $6) }        
+  | ID LPAREN expr_list_rule RPAREN      { Call((Id $1), $3) }
+  | func_rule                                   { $1 }
+  | func_rule LPAREN expr_list_rule RPAREN      { Call($1, $3) }        
   | LPAREN expr_rule RPAREN       { $2 }
   | LBRACE struct_member_assign_rule RBRACE { StructAssign($2)}
   // | STRUCT STRUCT_ID LBRACE stmt_list_rule RBRACE { StructCreate($2, $4)}
