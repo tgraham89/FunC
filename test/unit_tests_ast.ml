@@ -5,6 +5,10 @@ These are unit tests that cover
 the ast file via the ast stringify functions
 *)
 
+(* It's useful to print output and check the .out file to debug broken UTs *)
+(* e.g., with `print_endline (string_of_expr expr13)` *)
+
+
 
 (* All operators-- these should always work *)
 let run_op_tests () =
@@ -23,6 +27,7 @@ let run_op_tests () =
   let op13 = Div in
   let op14 = Mod in
   let op15 = Vbar in
+  let op16 = Dot in
   assert (string_of_op op1 = "+");
   assert (string_of_op op2 = "-");
   assert (string_of_op op3 = "==");
@@ -37,7 +42,8 @@ let run_op_tests () =
   assert (string_of_op op12 = "*");
   assert (string_of_op op13 = "/");
   assert (string_of_op op14 = "%");
-  assert (string_of_op op15 = "|")
+  assert (string_of_op op15 = "|");
+  assert (string_of_op op16 = ".")
 
 
 (* Bare minimum test cases that should always work *)
@@ -52,12 +58,14 @@ let run_expr_tests () =
   let expr8 = ListLit([Literal 1]) in
   let expr9 = ListLit([Literal 1; Literal 2; Literal 3]) in
   let expr10 = ListLit([]) in
-  let expr11 = Struct([Literal 1]) in
-  let expr12 = Struct([Literal 1; Literal 2; Literal 3]) in
-  let expr13 = Struct([]) in
+  let expr11 = StructId("struct id") in
+  let expr12 = StructAccess(Literal 1) in
+  let expr13 = StructAssign([Literal 1; Literal 2]) in
   let expr14 = Id("id") in
   let expr15 = Binop(Literal 1, Add, Literal 1) in
   let expr16 = Assign("x", StrLit("hello world")) in
+  let expr17 = UnaryOp(Pos, Literal 1) in
+  let expr18 = UnaryOp(Neg, Literal 1) in
   assert (string_of_expr expr1 = "0");
   assert (string_of_expr expr2 = "1");
   assert (string_of_expr expr3 = "true");
@@ -68,26 +76,24 @@ let run_expr_tests () =
   assert (string_of_expr expr8 = "[1]");
   assert (string_of_expr expr9 = "[1, 2, 3]");
   assert (string_of_expr expr10 = "[]");
-  assert (string_of_expr expr11 = "{1}");
-  assert (string_of_expr expr12 = "{1, 2, 3}");
-  assert (string_of_expr expr13 = "{}");
+  assert (string_of_expr expr11 = "struct id");
+  assert (string_of_expr expr12 = "1");
+  assert (string_of_expr expr13 = "{\n1,\n2,\n}");
   assert (string_of_expr expr14 = "id");
   assert (string_of_expr expr15 = "1 + 1");
-  assert (string_of_expr expr16 = "x = \"hello world\"")
+  assert (string_of_expr expr16 = "x = \"hello world\"");
+  assert (string_of_expr expr17 = "+(1)");
+  assert (string_of_expr expr18 = "-(1)")
 
 
 (* Edge cases for expression tests *)
-(* TODO: these look wrong today? *)
 let run_expr_tests_edge_cases () =
   let list_with_multiple_types = ListLit([Literal 1; BoolLit(true)]) in
-  let struct_with_multiple_types = Struct([Literal 1; BoolLit(true)]) in
   let id_with_quotes = Id("\"quotation marks\"") in
   assert (string_of_expr list_with_multiple_types = "[1, true]");
-  assert (string_of_expr struct_with_multiple_types = "{1, true}");
   assert (string_of_expr id_with_quotes = "\"quotation marks\"")
 
 (* Test cases for function and bind *)
-(* TODO: these also look wrong today, need to check with team *)
 let run_expr_tests_function_and_bind_cases () =
   let hello_world_func = Function([Decl(Int, "hello_world_func")], [Expr(StrLit("hello world"))]) in
   let defn_func = Function([Defn(Int, "my_func", Assign("my_var", StrLit("my_val")))], [Expr(StrLit("hello world"))]) in
@@ -97,10 +103,10 @@ let run_expr_tests_function_and_bind_cases () =
 
 (* Test cases for Call *)
 let run_expr_tests_func_invoc_cases () =
-  let basic_invocation = Call("my_first_func_invoc", [Literal 1; Literal 2; Literal 3]) in
-  let multiple_arg_invocation = Call("multiple_types_of_args", [Literal 1; BoolLit(true); ChrLit('c')]) in
-  assert (string_of_expr basic_invocation = "my_first_func_invoc(1, 2, 3)");
-  assert (string_of_expr multiple_arg_invocation = "multiple_types_of_args(1, true, c)")
+  let basic_invocation = Call(Function([Decl(Int, "my_first_func_invoc")], [Expr(StrLit("hello world"))]), [Literal 1; Literal 2; Literal 3]) in
+  let multiple_arg_invocation = Call(Function([Decl(Int, "multiple_arg_invoc")], [Expr(StrLit("hello world"))]), [Literal 1; BoolLit(true); ChrLit('c')]) in
+  assert (string_of_expr basic_invocation = "(int my_first_func_invoc) {\n\"hello world\";\n}(1)(2)(3)");
+  assert (string_of_expr multiple_arg_invocation = "(int multiple_arg_invoc) {\n\"hello world\";\n}(1)(true)(c)")
 
 let run_type_tests () =
   let typ1 = Int in
@@ -128,11 +134,14 @@ let run_type_tests () =
   assert (string_of_typ typ11 = "list<void>");
   assert (string_of_typ typ12 = "list<float>")
 
-let run_type_tests_struct_sig_cases () =
-  let simple_struct_sig = StructSig("my_first_signature", [Decl(Int, "declaration_int")]) in
-  let complex_struct_sig = StructSig("complex_signature", [Decl(Int, "declaration_int"); Defn(String, "string_declr", StrLit("my_val")); Defn(Bool, "boolean_d", BoolLit(false))]) in
-  assert (string_of_typ simple_struct_sig = "struct my_first_signature {\nint declaration_int}");
-  assert (string_of_typ complex_struct_sig = "struct complex_signature {\nint declaration_int;\nstring string_declr = \"my_val\";\nbool boolean_d = false}")
+let run_type_tests_struct_cases () =
+  let simple_struct_sig = StructSig("simple_struct_sig") in
+  let simple_struct_mem = StructMem("my_first_signature", [Decl(Int, "declaration_int")]) in
+  let complex_struct_mem = StructMem("complex_signature", [Decl(Int, "declaration_int"); Defn(String, "string_declr", StrLit("my_val")); Defn(Bool, "boolean_d", BoolLit(false))]) in
+  assert (string_of_typ simple_struct_sig = "simple_struct_sig");
+  assert (string_of_typ simple_struct_mem = "my_first_signature int declaration_int");
+  assert (string_of_typ complex_struct_mem = "complex_signature int declaration_int,string string_declr = \"my_val\",bool boolean_d = false")
+
 
 let run_type_tests_fun_sig_cases () =
   let simple_func_sig = FunSig([Int], Int) in
@@ -167,7 +176,7 @@ let run_tests () =
   run_expr_tests_function_and_bind_cases ();
   run_expr_tests_func_invoc_cases ();
   run_type_tests ();
-  run_type_tests_struct_sig_cases ();
+  run_type_tests_struct_cases ();
   run_type_tests_fun_sig_cases ();
   run_stmt_tests ()
 

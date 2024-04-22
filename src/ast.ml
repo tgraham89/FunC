@@ -125,7 +125,7 @@ let rec string_of_expr = function
   | Call(x, args) -> begin match x with
       Id id -> id ^ "(" ^ string_of_expr_list ", " args ^ ")"
       | Function(_, _) as y -> string_of_expr y ^ "(" 
-        ^ string_of_expr_list ")" args ^ ")"
+        ^ string_of_expr_list ")(" args ^ ")"
       | _ -> raise (Failure "only functions are callable types") end
   | StructAssign(e) -> "{\n" ^ string_of_expr_list ",\n" e ^ ",\n}"
   | StructAccess(str) -> string_of_expr str
