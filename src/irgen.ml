@@ -40,16 +40,52 @@ let translate ({sbody} as program) =
   in
   let global_vars = init_global_vars sbody in
 
-  (* let function_decls : (L.llvalue * SFunction) StringMap.t =
-    let function_decl m (bindlist, stmtlist) =
-      (* TODO: our functions do not have a name so how do we do a string to function map? *)
-      let name = "" 
-      and formal_types =
-        Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) bindlist)
-        (* TODO: what is the return type of our functions? *)
-      in let ftype = L.function_type (ltype_of_typ returntype) formal_types in
-      StringMap.add name (L.define_function name ftype the_module, (bindlist, stmtlist)) m in
-    List.fold_left function_decl StringMap.empty sbody 
-  in *)
+(*
+  ///
+
+  let gen_expr e = function
+    | SUnaryOp (uop, e) -> match uop with
+      | + -> ...
+      | - -> ...
+    | SLiteral i -> L.const_int i32_t i
+    | SBoolLit b -> L.const_int i1_t b
+    | SStrLit s -> ...
+    | SChrLit c -> ...
+    | SFloatLit f -> ...
+    | SId s -> ...
+    | SBinop (e1, bop, e2) -> ...
+    | SAssign (s, e) ->
+    | SListLit (t, el) ->
+    | SFunction (bl, sl) -> generate random name, call build_function
+    | SCall (e, el) -> ...
+    | SStructId s -> ...
+    | SStructAccess e -> ...
+    | SStructAssign el -> ...
+    | SZero
+
+  let gen_bind b = function
+    | SDecl (t, s) -> 
+      let llvm_type = ltype_of_typ typ in
+      let init_val = L.const_int llvm_type 0 in
+      ...
+    | SDecl (t, s, e) ->
+      match e with
+        SFunction (args, block) -> generate function with s as name
+      | _ -> gen_expr e
+      ...
   
+  let gen_stmt s = function
+    | SBlock sl -> ...
+    | SExpr e -> gen_expr e
+    | SBind b -> gen_bind b
+    | SIf (cond, block) -> ...
+    | SIfElse (cond, block1, block2) -> ...
+    | SWhile (cond, block) -> ...
+    | SFor (init, cond, change, block) -> ...
+    | SReturn e -> ...
+    | SStructDecl
+
+  
+  ///
+  *)
   the_module

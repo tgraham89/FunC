@@ -42,7 +42,7 @@ type expr =
 and
 func = {
   formals : bind list;
-  body : stmt list;
+  bdy : stmt list;
 }
 and
 bind = Decl of typ * string 
