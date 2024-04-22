@@ -70,17 +70,17 @@ clean:
 	rm -f *.out
 	rm -f /src/*.output
 
-.PHONY: unit_tests unit_test_ast unit_test_scanner
+.PHONY: unit_tests unit_tests_ast unit_tests_scanner
 
-unit_tests: unit_test_ast unit_test_scanner
+unit_tests: unit_tests_ast unit_tests_scanner
 	
-unit_test_ast:
+unit_tests_ast:
 	ocamlbuild -I src test/unit_tests_ast.native
 	rm -f ./test/unit_tests_ast.cmi
 	rm -f ./test/unit_tests_ast.cmo
 	./unit_tests_ast.native > ./unit_tests_ast.out
 
-unit_test_scanner:
+unit_tests_scanner:
 	rm -f /test/ast.cmi
 	rm -f /test/ast.cmo
 	ocamlbuild -I src test/unit_tests_scanner.native
