@@ -51,15 +51,15 @@ let translate ({sbody} as program) =
   let main_func = 
     let main_ty = L.function_type i32_t [||] in
     L.define_function "main" main_ty the_module in
-  let builder = L.builder_at_end context (L.entry_block main_func) in
+    let builder = L.builder_at_end context (L.entry_block main_func) in
 
       (* Define a function to print a string *)
   let print_string_fn = 
     let print_str_ty = L.function_type void_t [| L.pointer_type i8_t |] in
     L.define_function "print_string" print_str_ty the_module in
-  let print_string_builder = L.builder_at_end context (L.entry_block print_string_fn) in
-  let str_arg = L.param print_string_fn 0 in
-  let print_format_str = L.build_global_stringptr "%s\n" "fmt" print_string_builder in
+    let print_string_builder = L.builder_at_end context (L.entry_block print_string_fn) in
+    let str_arg = L.param print_string_fn 0 in
+    let print_format_str = L.build_global_stringptr "%s\n" "fmt" print_string_builder in
   ignore(L.build_call print_func [| print_format_str; str_arg |] "" print_string_builder);
   ignore(L.build_ret_void print_string_builder);
 
