@@ -1,0 +1,5 @@
+; ModuleID = 'FunC'
+source_filename = "FunC"
+
+@a = global i32 0
+@b = global i32 0
