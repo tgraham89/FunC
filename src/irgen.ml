@@ -40,6 +40,17 @@ let translate ({sbody} as program) =
   in
   let global_vars = init_global_vars sbody in
 
+   (* Define the main function *)
+  let main_func = 
+    let main_ty = L.function_type i32_t [||] in
+    L.define_function "main" main_ty the_module in
+  let builder = L.builder_at_end context (L.entry_block main_func) in
+  
+  (* Add other code here *)
+  
+  (* Add a return statement to the main function *)
+  ignore(L.build_ret (L.const_int i32_t 0) builder);
+
 (*
   ///
 
