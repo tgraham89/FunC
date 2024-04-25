@@ -24,7 +24,7 @@ let translate ({sbody} as program) =
   in
 
   (* Initialize and add global variables to the LLVM module *)
-  let init_global_vars (stmts : sstmt list) : L.llvalue StringMap.t =
+  (* let init_global_vars (stmts : sstmt list) : L.llvalue StringMap.t =
     let add_global m = function
       | SBind (SDecl (typ, name)) ->
         let llvm_type = ltype_of_typ typ in
@@ -38,13 +38,14 @@ let translate ({sbody} as program) =
       | _ -> m
     in
     List.fold_left add_global StringMap.empty stmts
-  in
-  let global_vars = init_global_vars sbody in 
+  in *)
+
+  let global_vars = StringMap.empty in 
 
   (* Define the print function *)
-   let print_func =
-  let printf_ty = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
-  L.declare_function "printf" printf_ty the_module in
+  let print_func =
+    let printf_ty = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
+    L.declare_function "printf" printf_ty the_module in
 
   (* Define the main function *)
   let main_func = 
@@ -83,32 +84,38 @@ let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder in
       with Not_found -> StringMap.find n global_vars
     in
 
-let rec gen_stmt builder = function
-  | SExpr expr ->
-    ignore(gen_expr builder expr); builder
+let rec gen_stmt builder vars = function
+  | SExpr expr -> gen_expr builder vars expr
   | SBind bind ->
-    gen_bind builder bind; builder
-  | SBlock stmts ->
-    List.fold_left gen_stmt builder stmts
+    gen_bind builder vars bind
+  | SBlock stmts -> let (bul, _ = List.fold_left (gen_stmt builder vars) stmts vars in (bul, vars)
   | SIf (cond, then_stmt) ->
-    gen_if_stmt builder cond then_stmt None; builder
+    gen_if_stmt builder cond then_stmt None; (builder, vars)
   | SIfElse (cond, then_stmt, else_stmt) ->
-    gen_if_stmt builder cond then_stmt (Some else_stmt); builder
+    gen_if_stmt builder cond then_stmt (Some else_stmt); (builder, vars)
   | SWhile (cond, body) ->
-    gen_while_stmt builder cond body; builder
+    gen_while_stmt builder cond body; (builder, vars)
   | SFor (init, cond, step, body) ->
-    gen_for_stmt builder init cond step body; builder
+    gen_for_stmt builder init cond step body; (builder, vars)
   | SReturn expr ->
-    gen_return builder expr; builder
-  | SStructDecl _ -> builder
+    gen_return builder expr; (builder, vars)
+  | SStructDecl _ -> (builder, vars)
   | stmt ->
     raise (Failure ("Unhandled statement: " ^ string_of_sstmt stmt))
 
-  and gen_bind builder = function
-  | SDecl (_, _) -> builder (* Global variable declarations are handled elsewhere *)
-  | SDefn (_, _, _) -> builder (* Global variable definitions are handled elsewhere *)
+  and gen_bind builder vars = function
+  | SDecl (typ, name) ->
+    let llvm_type = ltype_of_typ typ in
+    let init_val = L.const_int llvm_type 0 in
+    StringMap.add name (L.define_global name init_val the_module) vars;
+    (builder, vars)
+  | (SDefn (typ, name, expr)) ->
+    let llvm_type = ltype_of_typ typ in
+    let init_val = gen_expr builder expr in
+    StringMap.add name (L.define_global name init_val the_module) vars;
+    (builder, vars)
 
-  and gen_expr builder = function
+  and gen_expr builder vars = function
   | (_, SUnaryOp (a, b)) ->  raise (Failure "UnaryOp not implemented yet")
   | (_, SLiteral i) -> L.const_int i32_t i
   | (_, SBoolLit b) -> L.const_int i1_t (if b then 1 else 0)
@@ -118,7 +125,18 @@ let rec gen_stmt builder = function
   | (_, SId id) ->
     let val_ptr = lookup_variable id global_vars in
     L.build_load val_ptr id builder
-  | (_, SBinop (a, op, b)) -> raise (Failure "SBinop not implemented yet")
+  | (_, SBinop (a, op, b)) ->
+    let e1 = gen_expr builder a
+      and e2 = gen_expr builder b in
+      (begin match op with
+           A.Add     -> L.build_add
+         | A.Sub     -> L.build_sub
+         | A.And     -> L.build_and
+         | A.Or      -> L.build_or
+         | A.Equal   -> L.build_icmp L.Icmp.Eq
+         | A.Neq     -> L.build_icmp L.Icmp.Ne
+         | A.Less    -> L.build_icmp L.Icmp.Slt
+      end ) e1 e2 "tmp" builder
   | (_, SAssign (s, e)) -> let e' = gen_expr builder e in
         ignore(L.build_store e' (lookup s) builder); e'
   | (_, SListLit (a, b)) -> raise (Failure "SListLit not implemented yet")
