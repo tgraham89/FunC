@@ -126,7 +126,7 @@ let rec gen_stmt builder = function
   | (_, SCall (callee, args)) ->
     let callee_func =
       match callee with
-      | (_, SId "print") -> (* Handle print function *)
+      | (_, SId "print") -> (* Handle print function ONLY INT FOR NOW *)
         print_endline (string_of_sexpr_list "," args);
          List.iter (fun arg ->
           let arg_val = gen_expr builder arg in
