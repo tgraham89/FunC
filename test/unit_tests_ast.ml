@@ -66,6 +66,7 @@ let run_expr_tests () =
   let expr16 = Assign("x", StrLit("hello world")) in
   let expr17 = UnaryOp(Pos, Literal 1) in
   let expr18 = UnaryOp(Neg, Literal 1) in
+  let expr19 = UnaryOp(Bang, BoolLit(true)) in
   assert (string_of_expr expr1 = "0");
   assert (string_of_expr expr2 = "1");
   assert (string_of_expr expr3 = "true");
@@ -83,7 +84,8 @@ let run_expr_tests () =
   assert (string_of_expr expr15 = "1 + 1");
   assert (string_of_expr expr16 = "x = \"hello world\"");
   assert (string_of_expr expr17 = "+(1)");
-  assert (string_of_expr expr18 = "-(1)")
+  assert (string_of_expr expr18 = "-(1)");
+  assert (string_of_expr expr19 = "!(true)")
 
 
 (* Edge cases for expression tests *)

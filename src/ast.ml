@@ -18,7 +18,7 @@ type bop = Add
 type unary_operator =
   | Pos
   | Neg
-  
+  | Bang
 
 type expr =
   Literal of int
@@ -131,6 +131,7 @@ let rec string_of_expr = function
   | StructAccess(str) -> string_of_expr str
   | UnaryOp(op, ex) -> match op with Neg -> "-(" ^ string_of_expr ex ^ ")"
                                     | Pos -> "+(" ^  string_of_expr ex ^ ")"
+                                    | Bang -> "!(" ^ string_of_expr ex ^ ")"
 and
 string_of_expr_list delim = function
   [] -> ""

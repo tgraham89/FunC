@@ -134,6 +134,7 @@ expr_rule:
   | ID                            { Id $1 }
   | PLUS expr_rule  { UnaryOp (Pos, $2) }
   | MINUS expr_rule { UnaryOp (Neg, $2) }
+  | NOT expr_rule   { UnaryOp (Bang,$2) }
   // | PLUS LITERAL                  { Literal $2 }
   // | MINUS expr_rule                 { Binop(0, Sub, $2) }
   | expr_rule PLUS expr_rule      { Binop ($1, Add, $3) }

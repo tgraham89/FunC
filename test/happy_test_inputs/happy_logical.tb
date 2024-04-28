@@ -1,2 +1,3 @@
 bool b = true;
+bool c = !true;
 int a = 7;
