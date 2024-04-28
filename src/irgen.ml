@@ -84,35 +84,36 @@ let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder in
       with Not_found -> StringMap.find n global_vars
     in
 
-let rec gen_stmt builder vars = function
-  | SExpr expr -> gen_expr builder vars expr
+let rec gen_stmt (builder, vars) = function
+  | SExpr expr -> ignore(gen_expr builder vars expr); (builder, vars)
   | SBind bind ->
     gen_bind builder vars bind
-  | SBlock stmts -> let (bul, _ = List.fold_left (gen_stmt builder vars) stmts vars in (bul, vars)
+  | SBlock stmts -> let (bul, _) = List.fold_left gen_stmt (builder, vars) stmts in (bul, vars)
   | SIf (cond, then_stmt) ->
-    gen_if_stmt builder cond then_stmt None; (builder, vars)
+    gen_if_stmt builder vars cond then_stmt None; (builder, vars)
   | SIfElse (cond, then_stmt, else_stmt) ->
-    gen_if_stmt builder cond then_stmt (Some else_stmt); (builder, vars)
+    gen_if_stmt builder vars cond then_stmt (Some else_stmt); (builder, vars)
   | SWhile (cond, body) ->
-    gen_while_stmt builder cond body; (builder, vars)
+    gen_while_stmt builder vars cond body; (builder, vars)
   | SFor (init, cond, step, body) ->
-    gen_for_stmt builder init cond step body; (builder, vars)
+    gen_for_stmt builder vars init cond step body; (builder, vars)
   | SReturn expr ->
-    gen_return builder expr; (builder, vars)
+    gen_return builder vars expr; (builder, vars)
   | SStructDecl _ -> (builder, vars)
   | stmt ->
     raise (Failure ("Unhandled statement: " ^ string_of_sstmt stmt))
+
 
   and gen_bind builder vars = function
   | SDecl (typ, name) ->
     let llvm_type = ltype_of_typ typ in
     let init_val = L.const_int llvm_type 0 in
-    StringMap.add name (L.define_global name init_val the_module) vars;
+    let vars = StringMap.add name (L.define_global name init_val the_module) vars in
     (builder, vars)
   | (SDefn (typ, name, expr)) ->
     let llvm_type = ltype_of_typ typ in
-    let init_val = gen_expr builder expr in
-    StringMap.add name (L.define_global name init_val the_module) vars;
+    let init_val = gen_expr builder vars expr in
+    let vars = StringMap.add name (L.define_global name init_val the_module) vars in
     (builder, vars)
 
   and gen_expr builder vars = function
@@ -126,8 +127,8 @@ let rec gen_stmt builder vars = function
     let val_ptr = lookup_variable id global_vars in
     L.build_load val_ptr id builder
   | (_, SBinop (a, op, b)) ->
-    let e1 = gen_expr builder a
-      and e2 = gen_expr builder b in
+    let e1 = gen_expr builder vars a
+      and e2 = gen_expr builder vars b in
       (begin match op with
            A.Add     -> L.build_add
          | A.Sub     -> L.build_sub
@@ -137,7 +138,7 @@ let rec gen_stmt builder vars = function
          | A.Neq     -> L.build_icmp L.Icmp.Ne
          | A.Less    -> L.build_icmp L.Icmp.Slt
       end ) e1 e2 "tmp" builder
-  | (_, SAssign (s, e)) -> let e' = gen_expr builder e in
+  | (_, SAssign (s, e)) -> let e' = gen_expr builder vars e in
         ignore(L.build_store e' (lookup s) builder); e'
   | (_, SListLit (a, b)) -> raise (Failure "SListLit not implemented yet")
   | (_, SFunction (a, b)) -> raise (Failure "SFunction not implemented yet")
@@ -147,7 +148,7 @@ let rec gen_stmt builder vars = function
       | (_, SId "print") -> (* Handle print function ONLY INT FOR NOW *)
         print_endline (string_of_sexpr_list "," args);
          List.iter (fun arg ->
-          let arg_val = gen_expr builder arg in
+          let arg_val = gen_expr builder vars arg in
           ignore (L.build_call print_int_fn [| arg_val |] "print_int" builder)
         ) args;
         L.const_int i32_t 0
@@ -158,7 +159,7 @@ let rec gen_stmt builder vars = function
           | None -> raise (Failure ("Function not found: " ^ name)))
       | _ -> raise (Failure "Only function identifiers can be called")
     in
-    let llvm_args = Array.of_list (List.map (gen_expr builder) args) in
+    let llvm_args = Array.of_list (List.map (gen_expr builder vars) args) in
     L.build_call callee_func llvm_args "%s\n" builder
   | (_, SStructId s) -> raise (Failure "SStructId not implemented yet")
    | (_, SStructAccess s) -> raise (Failure "SStructAccess not implemented yet")
@@ -169,8 +170,8 @@ let rec gen_stmt builder vars = function
 and lookup_variable name global_vars =
   StringMap.find name global_vars
 
-and gen_if_stmt builder cond then_stmt maybe_else_stmt =
-  let cond_val = gen_expr builder cond in
+and gen_if_stmt builder vars cond then_stmt maybe_else_stmt =
+  let cond_val = gen_expr builder vars cond in
   let then_bb = L.append_block context "then" the_function in
   let else_bb = L.append_block context "else" the_function in
   let merge_bb = L.append_block context "merge" the_function in
@@ -179,14 +180,14 @@ and gen_if_stmt builder cond then_stmt maybe_else_stmt =
   ignore (L.build_cond_br cond_val then_bb else_bb start_bb_builder);
 
   let then_builder = L.builder_at_end context then_bb in
-  let then_builder = gen_stmt then_builder then_stmt in
+  let (then_builder, _) = gen_stmt (then_builder, vars) then_stmt in
   ignore (L.build_br merge_bb then_builder);
 
   let else_builder =
     match maybe_else_stmt with
     | Some else_stmt ->
       let else_builder = L.builder_at_end context else_bb in
-      let else_builder = gen_stmt else_builder else_stmt in
+      let (else_builder, _) = gen_stmt (else_builder, vars) else_stmt in
       ignore (L.build_br merge_bb else_builder)
     | None ->
       let else_builder = L.builder_at_end context else_bb in
@@ -194,29 +195,29 @@ and gen_if_stmt builder cond then_stmt maybe_else_stmt =
   in
   L.builder_at_end context merge_bb
 
-and gen_while_stmt builder cond body =
+and gen_while_stmt builder vars cond body =
   let cond_bb = L.append_block context "while_cond" the_function in
   let body_bb = L.append_block context "while_body" the_function in
   let merge_bb = L.append_block context "merge" the_function in
   ignore (L.build_br cond_bb builder);
   let cond_builder = L.builder_at_end context cond_bb in
-  let cond_val = gen_expr cond_builder cond in
+  let cond_val = gen_expr cond_builder vars cond in
   ignore (L.build_cond_br cond_val body_bb merge_bb cond_builder);
   let body_builder = L.builder_at_end context body_bb in
-  let body_builder = gen_stmt body_builder body in
+  let (body_builder, _) = gen_stmt (body_builder, vars) body in
   ignore (L.build_br cond_bb body_builder);
   L.builder_at_end context merge_bb
 
-and gen_for_stmt builder init cond step body = builder
+and gen_for_stmt builder vars init cond step body = builder
  (* To be implemented *)
  
-and gen_return builder expr =
-  let ret_val = gen_expr builder expr in
+and gen_return builder vars expr =
+  let ret_val = gen_expr builder vars expr in
   ignore (L.build_ret ret_val builder) in
 
   (* List.iter (gen_stmt builder) sbody; *)
   let builder = L.builder_at_end context (L.entry_block main_func) in
-  let final_builder = List.fold_left gen_stmt builder sbody in
+  let final_builder = List.fold_left gen_stmt (builder, StringMap.empty) sbody in
 
   ignore(L.build_ret (L.const_int i32_t 0) builder);
   the_module
