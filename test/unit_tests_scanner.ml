@@ -203,6 +203,6 @@ let run_tests () =
 (* Execute test suite for scanner file *)
 let () =
   run_tests ();
-  print_endline "test_scanner.ml passed"
+  print_endline "unit_tests_scanner.ml passed"
 
 

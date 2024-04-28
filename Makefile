@@ -70,9 +70,9 @@ clean:
 	rm -f *.out
 	rm -f /src/*.output
 
-.PHONY: unit_tests unit_tests_ast unit_tests_scanner
+.PHONY: unit_tests unit_tests_ast unit_tests_scanner unit_tests_parser
 
-unit_tests: unit_tests_ast unit_tests_scanner
+unit_tests: unit_tests_ast unit_tests_scanner unit_tests_parser
 	
 unit_tests_ast:
 	ocamlbuild -I src test/unit_tests_ast.native
@@ -85,3 +85,9 @@ unit_tests_scanner:
 	rm -f /test/ast.cmo
 	ocamlbuild -I src test/unit_tests_scanner.native
 	./unit_tests_scanner.native > ./unit_tests_scanner.out
+
+unit_tests_parser:
+	rm -f /test/ast.cmi
+	rm -f /test/ast.cmo
+	ocamlbuild -I src test/unit_tests_parser.native
+	./unit_tests_parser.native > ./unit_tests_parser.out

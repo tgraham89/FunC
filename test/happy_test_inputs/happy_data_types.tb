@@ -1,0 +1,17 @@
+function<> -> int main = () => {
+    int i = 1;
+    bool b = true;
+    char c = 'c';
+    string s = "s";
+    float f = 1.23;
+    void v;
+    list<int> l = [1,2,3];
+    struct St {
+        int k,
+    };
+    function<> -> int f1 = () => { return 0; };
+    lambda<> -> int l1 = () => { return 0; };
+    return 0;
+};
+
+main();

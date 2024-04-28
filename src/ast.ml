@@ -182,7 +182,5 @@ and string_of_stmt_list delim = function
   [] -> ""
   | x :: [] -> string_of_stmt x
   | x :: rest -> delim ^ string_of_stmt x ^ string_of_stmt_list delim rest
-let string_of_program fdecl =
-  "\n\nParsed program: \n\n" ^
-  String.concat "" (List.map string_of_stmt fdecl.body) ^
-  "\n"
+let string_of_program (fdecl : program) =
+  String.concat "" (List.map string_of_stmt fdecl.body)

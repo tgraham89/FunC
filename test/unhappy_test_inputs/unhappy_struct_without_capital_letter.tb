@@ -1,0 +1,10 @@
+function<> -> int main = () => {
+
+    struct structNameMustStartWithCapitalLetter {
+        int k,
+    };
+
+    return 0;
+};
+
+main();

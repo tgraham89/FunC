@@ -1,0 +1,4 @@
+Customertype student = {
+    name = "John",
+    id = 25,
+};

@@ -10,7 +10,7 @@ let escape = '\\' ['\\' ''' '"' 'n' 'r' 't']
 let escape_char = ''' (escape) '''
 let char = ''' ( ascii | digit ) '''
 let string = ''' (ascii | escape_char )* '''
-let float = (digit)*['.']digit(digit)+
+let float = (digit)*['.'](digit)+
 let intlit = (['1'-'9']['0'-'9']* | '0')
 let stringlit = '"'((ascii|escape)* as lxm)'"'
 
