@@ -1,2 +1,4 @@
-int a = 1;
-int b = 1 + 1;
+
+function<int> -> int f = (int x) => { return 5; };
+
+print_int(f(5));
