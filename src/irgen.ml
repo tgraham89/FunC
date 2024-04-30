@@ -63,6 +63,11 @@ in
     L.declare_function "printf" printf_t the_module in
 
   let global_vars = StringMap.empty in 
+  let main_vars = StringMap.empty in 
+
+  let map_to_str m = 
+    let inners = List.map (fun (k, v) -> k ^ " -> " ^ (string_of_int v)) (StringMap.bindings m)
+    in "[" ^ (String.concat ", " inners) ^ "]" in
 
   (* Define the print function *)
   (* let print_func =
@@ -76,6 +81,18 @@ in
     let the_function = main_func in
     let builder = L.builder_at_end context (L.entry_block main_func) in
 
+  let add_formal m (t, n) p =
+        L.set_value_name n p;
+        let local = L.build_alloca (ltype_of_typ t) n builder in
+        ignore (L.build_store p local builder);
+        StringMap.add n local m
+
+      (* Allocate space for any locally declared variables and add the
+       * resulting registers to our map *)
+      and add_local m (t, n) =
+        let local_var = L.build_alloca (ltype_of_typ t) n builder
+        in StringMap.add n local_var m
+      in
   (* Define a function to print a string *)
   (* let print_string_fn = 
     let print_str_ty = L.function_type void_t [| L.pointer_type i8_t |] in
@@ -103,16 +120,19 @@ let str_format_str = L.build_global_stringptr "%s\n" "fmt" builder in
 (* Return the value for a variable or formal argument.
        Check local names first, then global names *)
        (* ONLY LOOKS IN GLOBAL CONTEXT RIGHT NOW *)
-    let lookup n = try StringMap.find n global_vars
-      with Not_found -> StringMap.find n global_vars
-    in
+let lookup n = 
+  print_endline(map_to_str main_vars);
+  try StringMap.find n main_vars
+  print_endline(map_to_str global_vars);
+  with Not_found -> StringMap.find n global_vars
+  in
 
 let rec gen_stmt (builder, vars) = function
   | SExpr expr -> ignore(gen_expr builder vars expr); (builder, vars)
   | SBind bind ->
     gen_bind (builder, vars) bind
   | SBlock stmts -> let (bul, _) = List.fold_left gen_stmt (builder, vars) stmts in (bul, vars)
-  (* | SIf (cond, then_stmt) ->
+  | SIf (cond, then_stmt) ->
     gen_if_stmt builder vars cond then_stmt None; (builder, vars)
   | SIfElse (cond, then_stmt, else_stmt) ->
     gen_if_stmt builder vars cond then_stmt (Some else_stmt); (builder, vars)
@@ -120,7 +140,7 @@ let rec gen_stmt (builder, vars) = function
     gen_while_stmt builder vars cond body; (builder, vars)
   | SFor (init, cond, step, body) ->
     gen_for_stmt builder vars init cond step body; (builder, vars)
-  | SStructDecl _ -> (builder, vars) *)
+  | SStructDecl _ -> (builder, vars) 
   | SReturn expr ->
     gen_return builder vars expr; (builder, vars)
   | stmt ->
@@ -132,7 +152,8 @@ let rec gen_stmt (builder, vars) = function
     let llvm_type = ltype_of_typ typ in
     let init_val = L.const_int llvm_type 0 in
     let vars = StringMap.add name (L.define_global name init_val the_module) vars in
-    (builder, vars)
+    let local_var = add_local main_vars (typ, name) in
+    (builder, local_var)
   | SDefn (FunSig(_, _) as typ, name, expr) ->
       let llvm_type = ltype_of_typ typ in
       let init_val = gen_expr builder vars expr in
@@ -141,8 +162,10 @@ let rec gen_stmt (builder, vars) = function
   | SDefn (typ, name, expr) ->
     let llvm_type = ltype_of_typ typ in
     let init_val = gen_expr builder vars expr in
-    let vars = StringMap.add name (L.define_global name init_val the_module) vars in
-    (builder, vars)
+    (* let vars = StringMap.add name (L.define_global name init_val the_module) vars in *)
+    let local_var = StringMap.add name (L.build_alloca (ltype_of_typ typ) name builder) vars in
+    (* let local_var = add_local main_vars (typ, name) in *)
+    (builder, local_var)
 
   and gen_expr builder vars = function
   | (_, SUnaryOp (a, b)) ->  raise (Failure "UnaryOp not implemented yet")
@@ -247,12 +270,22 @@ and lookup_variable name vars =
   StringMap.find name vars
 
 and gen_if_stmt builder vars cond then_stmt maybe_else_stmt =
-  let cond_val = gen_expr builder vars cond in
   let then_bb = L.append_block context "then" the_function in
   let else_bb = L.append_block context "else" the_function in
   let merge_bb = L.append_block context "merge" the_function in
 
-  let start_bb_builder = L.builder_at_end context (L.insertion_block builder) in
+  L.build_cond_br (gen_expr builder vars cond) then_bb else_bb builder;
+
+  (* Generate code for the "then" branch *)
+  L.position_at_end then_bb builder;
+  ignore (gen_stmt (builder, vars) then_stmt);
+  let new_then_bb = L.insertion_block builder in
+  ignore (L.build_br merge_bb builder); (* Jump to the merge block *)
+
+  (* Move to the merge block *)
+  L.position_at_end merge_bb builder
+
+  (* let start_bb_builder = L.builder_at_end context (L.insertion_block builder) in
   ignore (L.build_cond_br cond_val then_bb else_bb start_bb_builder);
 
   let then_builder = L.builder_at_end context then_bb in
@@ -269,7 +302,7 @@ and gen_if_stmt builder vars cond then_stmt maybe_else_stmt =
       let else_builder = L.builder_at_end context else_bb in
       ignore (L.build_br merge_bb else_builder)
   in
-  L.builder_at_end context merge_bb
+  L.builder_at_end context merge_bb *)
 
 and gen_while_stmt builder vars cond body =
   let cond_bb = L.append_block context "while_cond" the_function in
@@ -293,7 +326,7 @@ and gen_return builder vars expr =
 
   (* List.iter (gen_stmt builder) sbody; *)
   let builder = L.builder_at_end context (L.entry_block main_func) in
-  let final_builder = List.fold_left gen_stmt (builder, StringMap.empty) sbody in
+  let final_builder = List.fold_left gen_stmt (builder, main_vars) sbody in
 
   ignore(L.build_ret (L.const_int i32_t 0) builder);
   the_module
