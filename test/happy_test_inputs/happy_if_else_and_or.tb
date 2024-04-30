@@ -1,0 +1,10 @@
+int x = 1;
+bool flag = true;
+
+if (x > 1 || flag == true) {
+    print("x > 1 OR flag is true");
+}
+
+if (x > 1 && flag == true) {
+    print("x > 1 AND flag is true");
+}

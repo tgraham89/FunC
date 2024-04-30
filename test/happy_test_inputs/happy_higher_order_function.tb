@@ -1,0 +1,3 @@
+function<function<int> -> int, int> -> int higher_order = (function<int> -> int func, int x) => {
+    return func(x);
+};

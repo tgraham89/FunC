@@ -1,0 +1,3 @@
+lambda<int> -> int f = (int x) => {
+    return x;
+  };
