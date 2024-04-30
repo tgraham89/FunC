@@ -398,7 +398,8 @@ let check (program) =
       (* | _ -> raise (Failure "The statement that was parsed hasn't been implemented yet") *)
     in
     let built_in_symbols =
-      StringMap.add "print" (FunSig([String], Void)) StringMap.empty
+      StringMap.add "print" (FunSig([String], Void)) StringMap.empty in
+    let built_in_symbols = StringMap.add "print_int" (FunSig([Int], Void)) built_in_symbols
     in
     let scopes = init_new_scope [built_in_symbols]
     in
