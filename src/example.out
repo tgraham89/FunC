@@ -3,14 +3,17 @@ source_filename = "FunC"
 
 @fmt = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
 @fmt.1 = private unnamed_addr constant [4 x i8] c"%s\0A\00", align 1
-@x = global i32 0
 
 declare i32 @printf(i8*, ...)
 
 define i32 @main() {
 entry:
+  %a = alloca i32, align 4
+  store i32 2, i32* %a, align 4
   %f_result = call i32 @temp_func_name(i32 5)
   %printf = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @fmt, i32 0, i32 0), i32 %f_result)
+  %a1 = load i32, i32* %a, align 4
+  %printf2 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @fmt, i32 0, i32 0), i32 %a1)
   ret i32 0
 }
 
@@ -18,5 +21,7 @@ define i32 @temp_func_name(i32 %x) {
 entry:
   %x1 = alloca i32, align 4
   store i32 %x, i32* %x1, align 4
-  ret i32 5
+  %x2 = load i32, i32* %x1, align 4
+  %tmp = add i32 %x2, 2
+  ret i32 %tmp
 }

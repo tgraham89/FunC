@@ -163,7 +163,9 @@ let rec gen_stmt (builder, vars) = function
     let llvm_type = ltype_of_typ typ in
     let init_val = gen_expr builder vars expr in
     (* let vars = StringMap.add name (L.define_global name init_val the_module) vars in *)
-    let local_var = StringMap.add name (L.build_alloca (ltype_of_typ typ) name builder) vars in
+    let var_alloca = (L.build_alloca (ltype_of_typ typ) name builder) in
+    let local_var = StringMap.add name var_alloca vars in
+    ignore (L.build_store (gen_expr builder vars expr) var_alloca builder);
     (* let local_var = add_local main_vars (typ, name) in *)
     (builder, local_var)
 
@@ -199,7 +201,7 @@ let rec gen_stmt (builder, vars) = function
       in let ftype = L.function_type (ltype_of_typ rtyp) formal_types in
       let fdef = L.define_function name ftype the_module in
       let builder = L.builder_at_end context (L.entry_block fdef) in
-      let (builder, vars) = List.fold_left gen_bind (builder, vars) binds in
+      (* let (builder, vars) = List.fold_left gen_bind (builder, vars) binds in *)
 
       let local_vars =
         let add_formal m bind p = 
@@ -222,7 +224,7 @@ let rec gen_stmt (builder, vars) = function
         formals
       in
 
-      List.fold_left gen_stmt (builder, vars) body;
+      List.fold_left gen_stmt (builder, local_vars) body;
       fdef
   | (s, SCall((_,SId("print")), [e])) ->
       L.build_call printf_func [| str_format_str ; (gen_expr builder vars e) |]
@@ -267,7 +269,10 @@ let rec gen_stmt (builder, vars) = function
   (* Handle other cases as needed *)
 
 and lookup_variable name vars =
-  StringMap.find name vars
+  ( 
+    try StringMap.find name vars
+    with Not_found -> raise(Failure ("Cannot find var_name: " ^ name))
+  )
 
 and gen_if_stmt builder vars cond then_stmt maybe_else_stmt =
   let then_bb = L.append_block context "then" the_function in
