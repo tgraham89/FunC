@@ -195,7 +195,7 @@ let rec gen_stmt (builder, vars) = function
         ignore(L.build_store e' (lookup s) builder); e'
   | (_, SListLit (a, b)) -> raise (Failure "SListLit not implemented yet")
   | (A.FunSig(argtyps, rtyp), SFunction (binds, body)) -> 
-    let name = "temp_func_name"
+    let name = (anon_name 10)
       and formal_types =
         Array.of_list (List.map (fun (t) -> ltype_of_typ t) argtyps)
       in let ftype = L.function_type (ltype_of_typ rtyp) formal_types in
