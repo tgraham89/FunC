@@ -1,5 +1,25 @@
 open Ast
 
+(*
+
+unit_tests_parser.ml
+
+Runs UTs against various test cases defined in the happy_test_inputs or unhappy_test_inputs folder.
+
+This file additionally produces pretty output, which can be seen in the `unit_tests_parser.out` file in the project dir.
+This shows you what test ran, and that it executed as expected.
+
+What the test does:
+1. Read input file.
+2. Feed to parser.
+3. Convert parser result to string.
+4. Assert that no error was thrown for happy tests, and parsing error was thrown for unhappy tests.
+
+*)
+
+
+
+
 (* Input string arg, returns a valid parsed string
 or errors out if it cannot be parsed. *)
 let feed_parser str_input =

@@ -1,14 +1,24 @@
 open Ast
 
-(* 
-These are unit tests that cover
-the ast file via the ast stringify functions
+(*
+
+unit_tests_ast.ml
+
+These are unit tests that cover the ast file via the ast stringify functions.
+
+What the test does:
+1. Creates an input token.
+2. Converts the token to a string representation.
+3. Asserts the token is as expected.
+
 *)
+
+
+
+
 
 (* It's useful to print output and check the .out file to debug broken UTs *)
 (* e.g., with `print_endline (string_of_expr expr13)` *)
-
-
 
 (* All operators-- these should always work *)
 let run_op_tests () =

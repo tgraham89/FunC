@@ -1,5 +1,22 @@
 open Parser
 
+(*
+
+unit_tests_scanner.ml
+
+Runs UTs against all of the scanner definitions.
+Tests the initialization via the stringify functions.
+
+What the test does:
+1. Gives an input string to the scanner.
+2. Converts the output token to a string representation.
+3. Asserts the output token is as expected.
+
+*)
+
+
+
+
 (* Converts tokens into a string representation *)
 let string_of_token = function
   INT -> "INT"

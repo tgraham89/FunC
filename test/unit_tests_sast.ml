@@ -1,10 +1,23 @@
 open Sast
 open Ast
 
-(* 
-These are unit tests that cover
-the sast file via the sast stringify functions
+(*
+
+unit_tests_sast.ml
+
+These are unit tests that cover the sast file via the sast stringify functions.
+Runs against all of the definitions in the sast besides "program", which is tested via the semant UT file.
+
+This file additionally produces pretty output, which can be seen in the `unit_tests_sast.out` file in the project dir.
+This shows you what test ran, and that it executed as expected.
+
+What the test does:
+1. Create sast tokens.
+2. Feed into sast stringifer functions.
+3. Assert that the stringified sast token was as expected.
+
 *)
+
 
 
 let run_sexpr_test test_arg expected_result =
@@ -25,13 +38,24 @@ let run_sbind_test test_arg expected_result =
   with
     _ -> print_endline ("Failed."); false
 
+let run_sstmt_test test_arg expected_result =
+  try
+    print_endline ("Checking: " ^ string_of_sstmt test_arg ^ " to equal: " ^ expected_result);
+    assert (string_of_sstmt test_arg = expected_result);
+    print_endline ("Passed.");
+    true
+  with
+    _ -> print_endline ("Failed."); false
 
-(*
-^^ Helper funcs ^^
+
+(* ^^^^^ Helper Functions ^^^^^ *)
 
 
-vv Test  funcs  vv
-*)
+
+
+
+
+(* vvvvv Tests vvvvv *)
 
 
 let run_zero_test () =
@@ -178,28 +202,65 @@ let run_sdefn_test () =
   let exp1 = "string sdefn_test1 = (string : \"sdefn_test2\")" in
   assert (run_sbind_test arg1 exp1)
 
-(* 
+let run_sblock_test () =
+  let arg1 = (SBlock([(SExpr((String, SStrLit("sblock_test"))))])) in
+  let exp1 = "{\n(string : \"sblock_test\");\n\n}" in
+  assert (run_sstmt_test arg1 exp1)
+
+let run_sexpr_test () =
+  let arg1 = (SExpr((String, SStrLit("sexpr_test")))) in
+  let exp1 = "(string : \"sexpr_test\");\n" in
+  assert (run_sstmt_test arg1 exp1)
+
+let run_sbind_test () =
+  let arg1 = (SBind(SDecl(String, "sdecl_test"))) in
+  let exp1 = "string sdecl_test;\n" in
+  assert (run_sstmt_test arg1 exp1)
+
+let run_sif_test () =
+  let arg1 = (SIf(((String, SStrLit("if1"))), (SExpr((String, SStrLit("if2")))))) in
+  let exp1 = "if ((string : \"if1\"))\n(string : \"if2\");\n" in
+  assert (run_sstmt_test arg1 exp1)
+
+let run_sif_else_test () =
+  let arg1 = (SIfElse(((String, SStrLit("ifelse1"))), (SExpr((String, SStrLit("ifelse2")))), (SExpr((String, SStrLit("ifelse3")))))) in
+  let exp1 = "if ((string : \"ifelse1\"))\n(string : \"ifelse2\");\nelse\n(string : \"ifelse3\");\n" in
+  assert (run_sstmt_test arg1 exp1)
+
+let run_swhile_test () =
+  let arg1 = (SWhile(((String, SStrLit("swhile1"))), (SExpr((String, SStrLit("swhile2")))))) in
+  let exp1 = "while ((string : \"swhile1\"))\n(string : \"swhile2\");\n" in
+  assert (run_sstmt_test arg1 exp1)
+
+let run_sfor_test () =
+  let arg1 = (SFor((SDecl(String, "sfor1")), (String, SStrLit("sfor2")), (String, SStrLit("sfor3")), (SExpr((String, SStrLit("sfor4")))))) in
+  let exp1 = "for (string sfor1; (string : \"sfor2\"); (string : \"sfor3\"))\n(string : \"sfor4\");\n" in
+  assert (run_sstmt_test arg1 exp1)
+
+let run_sreturn_test () =
+  let arg1 = (SReturn((String, SStrLit("sreturn1")))) in
+  let exp1 = "return (string : \"sreturn1\");" in
+  assert (run_sstmt_test arg1 exp1)
+
+let run_sstruct_test () =
+  let no_list_struct_arg = (SStructDecl({sname = "structname"; members = []})) in
+  let no_list_struct_exp = "struct structname {\n,\n};\n" in
+  let single_list_struct_arg = (SStructDecl({sname = "structname"; members = [(SDecl(String, "members"))]})) in
+  let single_list_struct_exp = "struct structname {\nstring members,\n};\n" in
+  let multiple_list_struct_arg = (SStructDecl({sname = "structname"; members = [(SDecl(String, "members1"));(SDecl(String, "members2"))]})) in
+  let multiple_list_struct_exp = "struct structname {\nstring members1,\nstring members2,\n};\n" in
+  assert (run_sstmt_test no_list_struct_arg no_list_struct_exp);
+  assert (run_sstmt_test single_list_struct_arg single_list_struct_exp);
+  assert (run_sstmt_test multiple_list_struct_arg multiple_list_struct_exp)
 
 
-and sstmt =
-  | SBlock of sstmt list
-  | SExpr of sexpr
-  | SBind of sbind
-  | SIf of sexpr * sstmt
-  | SIfElse of sexpr * sstmt * sstmt
-  | SWhile of sexpr * sstmt
-  | SFor of sbind * sexpr * sexpr * sstmt
-  | SReturn of sexpr
-  | SStructDecl of {
-        sname: string;
-        members: sbind list;
-        }
-and program = {
-  sbody: sstmt list;
-}
- *)
+(* ^^^^^ Individual UTs ^^^^^ *)
 
 
+
+
+
+(* vvvvv Test Suites vvvvv *)
 
 (* Runs tests against all sexpr *)
 let run_sexpr_tests () =
@@ -223,13 +284,25 @@ let run_sbind_tests () =
   run_sdecl_test ();
   run_sdefn_test ()
 
+(* Runs tests against all sstmt *)
+let run_sstmt_tests () =
+  run_sblock_test ();
+  run_sexpr_test ();
+  run_sbind_test ();
+  run_sif_test ();
+  run_sif_else_test ();
+  run_swhile_test ();
+  run_sfor_test ();
+  run_sreturn_test ();
+  run_sstruct_test ()
 
 (* Runs all tests... look at each function for the actual cases *)
 let run_tests () =
   run_sexpr_tests ();
-  run_sbind_tests ()
+  run_sbind_tests ();
+  run_sstmt_tests ()
 
-(* Execute test suite for ast.ml *)
+(* Execute test suite for sast.ml *)
 let () =
   run_tests ();
-  print_endline "unit_tests_ast.ml passed"
+  print_endline "unit_tests_sast.ml passed"
