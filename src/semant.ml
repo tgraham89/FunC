@@ -80,7 +80,7 @@ let add_to_top_scope id typ scopes=
       let updated_scope = StringMap.add id typ top_scope in
       updated_scope :: tail
 
-let init_new_scope scopes = (List.hd scopes) :: scopes
+let init_new_scope scopes = StringMap.empty :: scopes
 
 let finish_scope = function
   | [] -> raise (Failure "No scopes exist")
@@ -179,8 +179,9 @@ let check (program) =
                 SDecl(t, _) -> t | _ -> raise (Failure "Function argument declarations must look like \"int x\"")
               end
               in List.rev (List.map help arg_bind_list) in
+            let scopes, sbody = check_stmt_list scopes body in
+            let sfunc = SFunction(arg_bind_list, sbody) in
             let deduced_type = FunSig(arg_types, typ_of_func_body scopes body)
-            and sfunc = SFunction(arg_bind_list, snd (check_stmt_list scopes body))
           in
           (finish_scope scopes, deduced_type, sfunc)
         | StructAssign(exprs) ->
