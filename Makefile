@@ -12,6 +12,10 @@ setup:
 	eval $$(opam env)
 	eval $$(opam env --switch=5.1.1)
 
+env:
+	eval $$(opam env)
+
+
 semant: src/semant.ml
 	rm -f src/parser.ml
 	rm -f src/parser.mli
