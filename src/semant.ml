@@ -110,14 +110,14 @@ let check (program) =
         | ListLit x -> 
           let rec verify_list = function 
           [] -> (EmptyList, true) 
-          | x :: [] -> let (_, tyx, _) = check_expr scopes x in (tyx, true) 
+          | x :: [] -> let (_, tyx, _) = print_endline("here"); check_expr scopes x in (tyx, true) 
           | x :: rest -> 
             let (_, tyx, _) = check_expr scopes x 
             in (tyx, List.for_all (fun a -> let (_, ca, _) = check_expr scopes a in ca = tyx) rest) in
             let slist = List.map (fun (_, t, x) -> (t, x)) (List.map (check_expr scopes) x) in
             let (tylist, valid) = verify_list x in
             let slistlit = (scopes, tylist, SListLit(tylist, slist)) in
-            if valid then slistlit else raise (Failure "the types of this list dont match")
+            if valid then (scopes, List(tylist), SListLit(tylist, slist)) else raise (Failure "the types of this list dont match")
         | Assign(var, e) as ex ->
           let lt = type_of_identifier scopes var
           and (scopes, rt, e') = check_expr scopes e in
@@ -283,6 +283,7 @@ let check (program) =
     
       (* checks the actual type and the stated type of a definition *)
     and check_defn scopes t id value =
+      print_endline ("jhell");
       let (scopes, rt, e') = check_expr scopes value in
       let err = "illegal assignment! " ^ string_of_typ t ^ " = " ^
                 string_of_typ rt ^ " in " ^ string_of_bind (Defn(t, id, value))

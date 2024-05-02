@@ -8,6 +8,7 @@ Runs UTs against various test cases defined in the happy_test_inputs or unhappy_
 
 This file additionally produces pretty output, which can be seen in the `unit_tests_semant.out` file in the project dir.
 This shows you what test ran, and that it executed as expected.
+It will also print out the resulting error thrown so you know exactly how the test failed.
 
 What the test does:
 1. Read input file.
@@ -41,7 +42,7 @@ let check_exception_was_raised file_name =
     true
   with
     Failure ex -> print_endline ("\nTest failed due to exception: " ^ ex); false
-    | _ -> print_endline ("\nUnknown error occurred."); false
+    | _ -> print_endline ("\nProgram was not generated due to parsing failure."); false
 
 
 (* Runs test and asserts result *)
