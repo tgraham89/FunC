@@ -1,4 +1,16 @@
-Customertype student = {
+struct StudentType {
+    string name,
+    int id,
+    int age,
+    float gpa,
+    string email,
+};
+
+
+StudentType student = {
     name = "John",
-    id = 25,
+    id = 1234567890,
+    age = 25,
+    gpa = 3.99,
+    email = "john@columbia.edu",
 };
