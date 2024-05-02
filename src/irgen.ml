@@ -207,6 +207,10 @@ let rec gen_stmt (builder, scope) = function
          | A.Equal   -> L.build_icmp L.Icmp.Eq
          | A.Neq     -> L.build_icmp L.Icmp.Ne
          | A.Less    -> L.build_icmp L.Icmp.Slt
+         | A.Greater -> L.build_icmp L.Icmp.Sgt
+         | A.Gequal   -> L.build_icmp L.Icmp.Sge
+         | A.Lequal      -> L.build_icmp L.Icmp.Sle
+         | _        -> raise (Failure "Unimplemented binop")
       end ) e1 e2 "tmp" builder
   | (_, SAssign (s, e)) -> let e' = gen_expr builder scope e in
         ignore(L.build_store e' (lookup s scope) builder); e'
@@ -314,7 +318,7 @@ and gen_while_stmt builder scope cond body =
   let body_builder = L.builder_at_end context body_bb in
   let (body_builder, _) = gen_stmt (body_builder, scope) body in
   ignore (L.build_br cond_bb body_builder);
-  L.builder_at_end context merge_bb
+  L.position_at_end merge_bb builder
 
 and gen_for_stmt builder scope init cond step body = builder
  (* To be implemented *)
