@@ -54,7 +54,7 @@ let run_test file_name expected_result : unit =
 (* File processing func *)
 let process_file dir expect file : unit =
   let file_name = Filename.concat dir file in
-  run_test file_name expect  
+  run_test file_name expect
 
 (* Helper funcs ^^^^^ *)
 
@@ -72,7 +72,7 @@ let run_happy_path_tests () =
 
 (* Series of unhappy path tests (these should error out) *) 
 let run_unhappy_path_tests () =
-  let unhappy_past_test_dir = "test/unhappy_test_inputs" in
+  let unhappy_past_test_dir = "test/unhappy_test_inputs/parser" in
   let test_files = Sys.readdir unhappy_past_test_dir in
   Array.iter (process_file unhappy_past_test_dir false) test_files
 

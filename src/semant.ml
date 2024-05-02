@@ -283,7 +283,6 @@ let check (program) =
     
       (* checks the actual type and the stated type of a definition *)
     and check_defn scopes t id value =
-      print_endline ("jhell");
       let (scopes, rt, e') = check_expr scopes value in
       let err = "illegal assignment! " ^ string_of_typ t ^ " = " ^
                 string_of_typ rt ^ " in " ^ string_of_bind (Defn(t, id, value))
