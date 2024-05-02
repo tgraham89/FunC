@@ -46,7 +46,7 @@ in
       A.Int   -> i32_t
     | A.Bool  -> i1_t
     | A.Float -> L.float_type context
-    (* | A.String -> L.pointer_type i8_t  *)
+    | A.String -> L.pointer_type i8_t 
     | A.FunSig(args_typ, ret_typ) -> 
       let lret_typ = ltype_of_typ ret_typ in
       let largs_typ = Array.of_list (List.map ltype_of_typ args_typ) in
@@ -279,7 +279,7 @@ let rec gen_stmt (builder, scope) = function
   | _ -> raise (Failure ("gen_expr match not found"))
   (* Handle other cases as needed *)
 
-and gen_if_stmt builder scope cond then_stmt maybe_else_stmt =
+and gen_if_stmt builder scope cond then_stmt else_stmt_opt =
   let then_bb = L.append_block context "then" the_function in
   let else_bb = L.append_block context "else" the_function in
   let merge_bb = L.append_block context "merge" the_function in
@@ -292,27 +292,16 @@ and gen_if_stmt builder scope cond then_stmt maybe_else_stmt =
   let new_then_bb = L.insertion_block builder in
   ignore (L.build_br merge_bb builder); (* Jump to the merge block *)
 
+  (* Generate code for the "else" branch *)
+L.position_at_end else_bb builder;
+  (match else_stmt_opt with
+  | Some else_stmt -> ignore (gen_stmt (builder, scope) else_stmt)
+  | None -> ());
+  let new_else_bb = L.insertion_block builder in
+  ignore (L.build_br merge_bb builder); (* Jump to the merge block *)
+
   (* Move to the merge block *)
   L.position_at_end merge_bb builder
-
-  (* let start_bb_builder = L.builder_at_end context (L.insertion_block builder) in
-  ignore (L.build_cond_br cond_val then_bb else_bb start_bb_builder);
-
-  let then_builder = L.builder_at_end context then_bb in
-  let (then_builder, _) = gen_stmt (then_builder, scope) then_stmt in
-  ignore (L.build_br merge_bb then_builder);
-
-  let else_builder =
-    match maybe_else_stmt with
-    | Some else_stmt ->
-      let else_builder = L.builder_at_end context else_bb in
-      let (else_builder, _) = gen_stmt (else_builder, scope) else_stmt in
-      ignore (L.build_br merge_bb else_builder)
-    | None ->
-      let else_builder = L.builder_at_end context else_bb in
-      ignore (L.build_br merge_bb else_builder)
-  in
-  L.builder_at_end context merge_bb *)
 
 and gen_while_stmt builder scope cond body =
   let cond_bb = L.append_block context "while_cond" the_function in
