@@ -98,7 +98,10 @@ let check (program) =
             | (Neg, Int) -> (scopes, Int, SUnaryOp(SNeg, (Int, e')))
             | (Pos, Float) -> (scopes, Float, SUnaryOp(SPos, (Float, e')))
             | (Neg, Float) -> (scopes, Float, SUnaryOp(SNeg, (Float, e')))
-            | _ -> raise (Failure "unary operator only applicable to int or float")
+            | (Bang, Bool) -> (scopes, Bool, SUnaryOp(SBang, (Bool, e')))
+            | (Pos, _) -> raise (Failure "+ unary operator only applicable to int or float")
+            | (Neg, _) -> raise (Failure "- unary operator only applicable to int or float")
+            | (Bang, _) -> raise (Failure "! unary operator only applicable to bool")
             end
         | BoolLit l -> (scopes, Bool, SBoolLit l)
         | FloatLit l -> (scopes, Float, SFloatLit l)
@@ -107,14 +110,14 @@ let check (program) =
         | ListLit x -> 
           let rec verify_list = function 
           [] -> (EmptyList, true) 
-          | x :: [] -> let (_, tyx, _) = check_expr scopes x in (tyx, true) 
+          | x :: [] -> let (_, tyx, _) = print_endline("here"); check_expr scopes x in (tyx, true) 
           | x :: rest -> 
             let (_, tyx, _) = check_expr scopes x 
             in (tyx, List.for_all (fun a -> let (_, ca, _) = check_expr scopes a in ca = tyx) rest) in
             let slist = List.map (fun (_, t, x) -> (t, x)) (List.map (check_expr scopes) x) in
             let (tylist, valid) = verify_list x in
             let slistlit = (scopes, tylist, SListLit(tylist, slist)) in
-            if valid then slistlit else raise (Failure "the types of this list dont match")
+            if valid then (scopes, List(tylist), SListLit(tylist, slist)) else raise (Failure "the types of this list dont match")
         | Assign(var, e) as ex ->
           let lt = type_of_identifier scopes var
           and (scopes, rt, e') = check_expr scopes e in
@@ -133,7 +136,7 @@ let check (program) =
             | (Div, t1, t2) when t1 != Int && t1 != Float -> raise (Failure "can't divide non-numeric things")
             | (Mod, t1, t2) when t1 != Int && t1 != Float -> raise (Failure "can't mod non-numeric things")
             | (Or, t1, t2) when t1 != Bool -> raise (Failure "Or only accepts booleans")
-            | (And, t1, t2) when t1 != Bool -> raise (Failure "Or only accepts booleans")
+            | (And, t1, t2) when t1 != Bool -> raise (Failure "And only accepts booleans")
             | (Add, t1, t2) -> (scopes, t1, SBinop ((t1, slhs), op, (t2, srhs))) 
             | (Sub, t1, t2) -> (scopes, t1, SBinop ((t1, slhs), op, (t2, srhs))) 
             | (Mult, t1, t2) -> (scopes, t1, SBinop ((t1, slhs), op, (t2, srhs))) 

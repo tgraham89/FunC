@@ -1,10 +1,10 @@
-function<int> -> int f = (int x) => {
+function<int> -> int f = (int my_input) => {
     int x = 1;
     int y = 2;
     int z = (x + y) * 2 / 3;
     float a = 1.1;
     float b = 1.23;
     float c = 1.234;
-    float d = 1.0 % 1;
-    return x;
+    int d = 5 % 1;
+    return my_input;
 };

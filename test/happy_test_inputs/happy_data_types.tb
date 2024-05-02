@@ -5,7 +5,7 @@ function<> -> int main = () => {
     string s = "s";
     float f = 1.23;
     void v;
-    list<int> l = [1,2,3];
+    list<int> jk;
     struct St {
         int k,
     };

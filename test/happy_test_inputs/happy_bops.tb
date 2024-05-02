@@ -12,8 +12,8 @@ function<> -> int main = () => {
     bool j = 1 <= 1;
     bool k = 1 > 1;
     bool l = 1 >= 1;
-    bool m = 1 && 1;
-    bool n = 1 || 1;
+    bool m = true && false;
+    bool n = true || false;
     return 0;
 };
 

@@ -1,11 +1,3 @@
-struct StudentType {
-    string name,
-    int id,
-    int age,
-    float gpa,
-    string email,
-};
-
 
 StudentType student = {
     name = "John",
