@@ -1,0 +1,29 @@
+list<int> x = [1, 2, 3];
+
+for (int i = 0; i < 3; i = i + 1) {
+    print_int(x[i]);
+}
+
+function<int> -> int f = (int a) => {
+    int my_result = (int d) => { return d + 5; }(a);
+    return my_result;
+};
+
+print_int(f(5)); // prints 10
+
+string h = "hello world";
+
+function<string> -> int repeat = (string x) => {
+  print(x);
+  return 0;
+};
+
+int a = 5;
+while (a > 0) {
+  if (a == 1) {
+    repeat("the end");
+  } else {
+    repeat(h);
+  }
+  a = a - 1;
+}
