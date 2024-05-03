@@ -61,6 +61,7 @@ let rec create_llvm_scope context builder scope scope_struct_type =
 					ignore (L.build_store casted_val var_ptr builder);
 					incr idx
 	) (List.rev scope.var_names);
+	(* TODO: handle recursion for scope.parents, we should import all variables from outer scopes *)
 
 	(* Store the array pointer in the scope structure *)
 	let vars_ptr_field = L.build_struct_gep scope_val 1 "vars_array_ptr" builder in
