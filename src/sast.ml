@@ -20,6 +20,7 @@ and sx =
   | SStructAccess of sexpr
   | SStructAssign of sexpr list (* Used to define an instance of a struct *)
   | SZero
+  | SIndex of sexpr * sexpr
 and sbind =
   | SDecl of typ * string
   | SDefn of typ * string * sexpr

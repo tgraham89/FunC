@@ -39,6 +39,7 @@ type expr =
   | StructAssign of expr list (* Used to define an instance of a struct *)
   | Zero
   | UnaryOp of unary_operator * expr
+  | Index of expr * expr
 and
 func = {
   formals : bind list;

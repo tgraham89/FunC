@@ -150,6 +150,7 @@ expr_rule:
   | expr_rule GEQ expr_rule       { Binop ($1, Gequal, $3) }
   | expr_rule AND expr_rule       { Binop ($1, And, $3) }
   | expr_rule OR expr_rule        { Binop ($1, Or, $3) }
+  | expr_rule LBRACK expr_rule RBRACK         { Index($1, $3) }
   | expr_rule NOT expr_rule       { Binop ($1, Not, $3) }
   | ID ASSIGN expr_rule           { Assign ($1, $3) }
   | ID LPAREN expr_list_rule RPAREN      { Call((Id $1), $3) }

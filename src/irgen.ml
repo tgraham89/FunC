@@ -111,7 +111,8 @@ in
 			let lret_typ = ltype_of_typ ret_typ in
 			let largs_typ = Array.of_list (List.map ltype_of_typ args_typ) in
 			L.function_type lret_typ largs_typ
-		| _ -> raise (Failure ("type match not found"))
+    | A.List(ty) -> L.pointer_type (ltype_of_typ ty)
+    | _ -> raise (Failure ("type match not found"))
 	in
 
 	(* Initialize and add global variables to the LLVM module *)
@@ -285,8 +286,24 @@ let rec gen_stmt (builder, scope) = function
 			end ) e1 e2 "tmp" builder
 	| (_, SAssign (s, e)) -> let e' = gen_expr builder scope e in
 				ignore(L.build_store e' (fst(lookup s scope)) builder); e'
-	| (_, SListLit (a, b)) -> raise (Failure "SListLit not implemented yet")
-	| (A.FunSig(argtyps, rtyp), SFunction (binds, body)) -> 
+	(* | (_, SListLit (a, b)) -> raise (Failure "SListLit not implemented yet")  *)
+	| (_, SListLit (typ, lst)) -> 
+      let n = L.const_int i32_t (List.length lst) in 
+      let ty = ltype_of_typ typ in
+      (* let vals = List.map () in  *)
+      let arr = L.build_array_malloc ty n "list" builder in 
+      let gen_list_item = 
+        fun i x ->  let x' = gen_expr builder scope x in 
+                    let i' = L.build_in_bounds_gep arr [|L.const_int i32_t i |] "i" builder in 
+                    ignore (L.build_store x' i' builder) in
+    List.iteri gen_list_item lst; arr
+  | (_, SIndex (lst, i)) -> 
+      let lst' = gen_expr builder scope lst in 
+      let l = gen_expr builder scope i in 
+      let i' = L.build_fptosi l i32_t "i" builder in 
+      let x = L.build_in_bounds_gep lst' [| i' |] "x" builder in 
+      L.build_load x "val" builder
+  | (A.FunSig(argtyps, rtyp), SFunction (binds, body)) -> 
 		let name = (anon_name 10)
 			and formal_types =
 				Array.of_list (List.map (fun (t) -> ltype_of_typ t) argtyps) in

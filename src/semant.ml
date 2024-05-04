@@ -201,6 +201,11 @@ let check (program) =
         | StructId (id) -> (scopes, type_of_identifier scopes id, SStructId id)
         | StructAccess (str) -> let (_, typ, str') = check_expr scopes str in
           (scopes, typ, SStructId (string_of_expr str))
+        | Index (Id id, i) ->  begin match type_of_identifier scopes id with 
+          List x -> let (_, s, sid) = (check_expr scopes (Id id)) in 
+                    let (_, r, sindex) = (check_expr scopes i) in
+          (scopes, x, SIndex ((s, sid), (r, sindex))) | _ -> raise (Failure "can only index lists") end
+ 
     and check_expr_list scopes lst = 
       let help = List.map (check_expr scopes) lst 
       in List.map (fun (_, x, y) -> (x, y)) help
