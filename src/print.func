@@ -6,5 +6,7 @@ function<int> -> int f = (int x) => {
 	return a + b + x;
 };
 
-
+print(1);
 print(f(1));
+
+print("hello");

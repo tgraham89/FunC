@@ -335,7 +335,7 @@ let rec gen_stmt (builder, scope) = function
 
 			List.fold_left gen_stmt (builder, local_vars) body;
 			fdef
-	| (s, SCall((_,SId("print")), [e])) ->
+	| (s, SCall((_,SId("print_str")), [e])) ->
 			L.build_call printf_func [| str_format_str ; (gen_expr builder scope e) |]
 				"printf" builder
 	| (s, SCall((_,SId("print_int")), [e])) ->

@@ -1,7 +1,7 @@
 list<int> x = [1, 2, 3];
 
 for (int i = 0; i < 3; i = i + 1) {
-    print_int(x[i]);
+    print(x[i]);
 }
 
 function<int> -> int f = (int a) => {
@@ -9,7 +9,7 @@ function<int> -> int f = (int a) => {
     return my_result;
 };
 
-print_int(f(5)); // prints 10
+print(f(5)); // prints 10
 
 string h = "hello world";
 
