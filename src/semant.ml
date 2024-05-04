@@ -152,6 +152,14 @@ let check (program) =
             | (Neq, t1, t2) -> (scopes, Bool, SBinop ((t1, slhs), op, (t2, srhs)))
             | _ -> raise (Failure "not a binary operator")
           end
+        | Call (Id("print"), [arg]) ->
+          let (_, arg_type, sarg) = check_expr scopes arg in
+          begin
+          match arg_type with
+            Int -> (scopes, Void, SCall ((FunSig([Int], Void), SId("print_int")), [(arg_type, sarg)]))
+            | String -> (scopes, Void, SCall ((FunSig([String], Void), SId("print_str")), [(arg_type, sarg)]))
+            | _ -> raise (Failure ("print not implemented for type: " ^ string_of_typ arg_type))
+          end
         | Call (callable, args) -> 
           let signature = typ_of_expr scopes callable
           and num_args = List.length args 
@@ -406,10 +414,7 @@ let check (program) =
           (scopes, SStructDecl({sname = s.sname; members = sbind})) 
       (* | _ -> raise (Failure "The statement that was parsed hasn't been implemented yet") *)
     in
-    let built_in_symbols =
-      StringMap.add "print" (FunSig([String], Void)) StringMap.empty in
-    let built_in_symbols = StringMap.add "print_int" (FunSig([Int], Void)) built_in_symbols
-    in
+    let built_in_symbols = StringMap.empty in
     let scopes = init_new_scope [built_in_symbols]
     in
     let (_, sbody_checked) = check_stmt_list scopes program.body

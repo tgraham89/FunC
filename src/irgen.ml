@@ -352,7 +352,7 @@ let rec gen_stmt (builder, scope) = function
 
 			List.fold_left gen_stmt (builder, local_vars) body;
 			fdef
-	| (s, SCall((_,SId("print")), [e])) ->
+	| (s, SCall((_,SId("print_str")), [e])) ->
 			L.build_call printf_func [| str_format_str ; (gen_expr builder scope e) |]
 				"printf" builder
 	| (s, SCall((_,SId("print_int")), [e])) ->
@@ -451,14 +451,17 @@ and gen_for_stmt builder scope init cond step body =
 	let cond_inc_bb = L.append_block context "for_ci" the_function in
 	let body_bb = L.append_block context "for_body" the_function in
 	let merge_bb = L.append_block context "merge" the_function in
-	ignore (L.build_br cond_inc_bb builder);
+	ignore (L.build_br init_bb builder);
+
 	let init_builder = L.builder_at_end context init_bb in
 	let (_, new_scope) = gen_bind (init_builder, scope) init in
 	ignore(L.build_br cond_inc_bb init_builder);
+	
 	let cond_inc_builder = L.builder_at_end context cond_inc_bb in
 	let cond_val = gen_expr cond_inc_builder new_scope cond in
 	gen_expr cond_inc_builder new_scope step;
 	ignore (L.build_cond_br cond_val body_bb merge_bb cond_inc_builder);
+	
 	let body_builder = L.builder_at_end context body_bb in
 	let (body_builder, _) = gen_stmt (body_builder, new_scope) body in
 	ignore (L.build_br cond_inc_bb body_builder);

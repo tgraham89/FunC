@@ -3,6 +3,6 @@ int a = 2;
 
 function<int> -> int f = (int x) => { return x + 2; };
 
-print_int(f(5));
+print(f(5));
 
-print_int(a);
+print(a);
