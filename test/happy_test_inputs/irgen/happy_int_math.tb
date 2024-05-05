@@ -1,5 +1,2 @@
-function<int> -> int f = (int my_input) => {
-    print(1+1);
-    print(500-499);
-    return 0;
-};
+print(1+1);
+print(500-499);

@@ -15,6 +15,9 @@ What the test does:
 3. Semantically check the output.
 4. Pass the semantically checked output into IR gen, which produces IR code.
 5. Assert that on success, IR code was produced. Assert that on error, IR code was not produced.
+
+For e2e tests that execute on FunC.native, you need to run `make unit_tests_e2e`-- that is the e2e testing script.
+
 *)
 
 
