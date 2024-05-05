@@ -110,7 +110,7 @@ let check (program) =
         | ListLit x -> 
           let rec verify_list = function 
           [] -> (EmptyList, true) 
-          | x :: [] -> let (_, tyx, _) = print_endline("here"); check_expr scopes x in (tyx, true) 
+          | x :: [] -> let (_, tyx, _) = check_expr scopes x in (tyx, true) 
           | x :: rest -> 
             let (_, tyx, _) = check_expr scopes x 
             in (tyx, List.for_all (fun a -> let (_, ca, _) = check_expr scopes a in ca = tyx) rest) in
@@ -167,6 +167,7 @@ let check (program) =
           match arg_type with
             Int -> (scopes, Void, SCall ((FunSig([Int], Void), SId("print_int")), [(arg_type, sarg)]))
             | String -> (scopes, Void, SCall ((FunSig([String], Void), SId("print_str")), [(arg_type, sarg)]))
+            | Float -> (scopes, Void, SCall ((FunSig([Float], Void), SId("print_float")), [(arg_type, sarg)]))
             | _ -> raise (Failure ("print not implemented for type: " ^ string_of_typ arg_type))
           end
         | Call (callable, args) -> 

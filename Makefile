@@ -73,10 +73,14 @@ clean:
 	rm -f hello_world.output
 	rm -f *.out
 	rm -f /src/*.output
+	rm -f ./test/happy_test_inputs/irgen/*.ll
+	rm -f ./test/happy_test_inputs/irgen/*.output
+	rm -f ./test/happy_test_inputs/e2e_actual_outputs/*.ll
+	rm -f ./test/happy_test_inputs/e2e_actual_outputs/*.output
 
-.PHONY: unit_tests unit_tests_ast unit_tests_scanner unit_tests_parser unit_tests_sast unit_tests_semant
+.PHONY: unit_tests unit_tests_ast unit_tests_scanner unit_tests_parser unit_tests_sast unit_tests_semant unit_tests_irgen unit_tests_e2e
 
-unit_tests: unit_tests_ast unit_tests_scanner unit_tests_parser unit_tests_sast unit_tests_semant
+unit_tests: unit_tests_ast unit_tests_scanner unit_tests_parser unit_tests_sast unit_tests_semant unit_tests_irgen unit_tests_e2e
 	
 unit_tests_ast:
 	ocamlbuild -I src test/unit_tests_ast.native
@@ -107,3 +111,54 @@ unit_tests_semant:
 	rm -f /test/ast.cmo
 	ocamlbuild -I src test/unit_tests_semant.native
 	./unit_tests_semant.native > ./unit_tests_semant.out
+
+unit_tests_irgen:
+	rm -f /test/ast.cmi
+	rm -f /test/ast.cmo
+	ocamlbuild -pkgs llvm -I src test/unit_tests_irgen.native
+	./unit_tests_irgen.native > ./unit_tests_irgen.out
+
+unit_tests_e2e: clean unit_tests_e2e_work
+
+unit_tests_e2e_work:
+	## Start work on the e2e unit tests...
+	rm -f /test/ast.cmi
+	rm -f /test/ast.cmo
+	ocamlbuild -pkgs llvm -I src src/func.native
+	## Create .ll and .output files from irgen test inputs.
+	@for file in "./test/happy_test_inputs/irgen"/*".tb"; do \
+		if [ -f "$$file" ]; then \
+			ll_file=$$(echo "$$file" | sed 's/\.tb$$/.ll/'); \
+			output_file=$$(echo "$$file" | sed 's/\.tb$$/.output/'); \
+			cat "$$file" | \
+			./func.native < "$$file" > "$$ll_file"; \
+			lli "$$ll_file" > "$$output_file"; \
+		fi; \
+	done
+	# Move .ll files to e2e folder, since they got generated in the irgen folder.
+	@for file in "./test/happy_test_inputs/irgen"/*".ll"; do \
+		if [ -f "$$file" ]; then \
+			new_dir=$$(echo "$$file" | sed 's/irgen/e2e_actual_outputs/'); \
+			mv $$file $$new_dir; \
+		fi; \
+	done
+	# Move .output files to e2e folder, since they got generated in the irgen folder.
+	@for file in "./test/happy_test_inputs/irgen"/*".output"; do \
+		if [ -f "$$file" ]; then \
+			new_dir=$$(echo "$$file" | sed 's/irgen/e2e_actual_outputs/'); \
+			mv $$file $$new_dir; \
+		fi; \
+	done
+	# Now, compare the e2e actual outputs to e2e expected outputs.
+	@for file in "./test/happy_test_inputs/e2e_actual_outputs"/*".output"; do \
+		if [ -f "$$file" ]; then \
+			echo "Checking actual test file: $$file";\
+			expected_file=$$(echo "$$file" | sed 's/e2e_actual_outputs/e2e_expected_outputs/'); \
+			if ! cmp -s "$$file" "$$expected_file"; then \
+	            echo "The actual test file: $$file -- did not match the expected output."; \
+	            exit 1; \
+	        fi; \
+		fi; \
+	done
+	# All done. The .ll and .output files can be viewed inside the e2e folders.
+	echo "\nThe unit_tests_e2e script passed.\n";

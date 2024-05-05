@@ -66,7 +66,7 @@ let process_file dir expect file : unit =
 
 (* Series of happy path tests (these should NOT error out) *) 
 let run_happy_path_tests () =
-  let happy_past_test_dir = "test/happy_test_inputs" in
+  let happy_past_test_dir = "test/happy_test_inputs/parser_and_semant" in
   let test_files = Sys.readdir happy_past_test_dir in
   Array.iter (process_file happy_past_test_dir true) test_files
 
@@ -86,4 +86,4 @@ let run_tests () =
 (* These tests are read from the test inputs folder. *)
 let () =
   run_tests ();
-  print_endline "unit_tests_parser.ml passed"
+  print_endline "\nunit_tests_parser.ml passed.\n"

@@ -38,6 +38,7 @@ let run_op_tests () =
   let op14 = Mod in
   let op15 = Vbar in
   let op16 = Dot in
+  print_endline ("Executing op tests...");
   assert (string_of_op op1 = "+");
   assert (string_of_op op2 = "-");
   assert (string_of_op op3 = "==");
@@ -53,7 +54,8 @@ let run_op_tests () =
   assert (string_of_op op13 = "/");
   assert (string_of_op op14 = "%");
   assert (string_of_op op15 = "|");
-  assert (string_of_op op16 = ".")
+  assert (string_of_op op16 = ".");
+  print_endline ("Done.\n")
 
 
 (* Bare minimum test cases that should always work *)
@@ -77,6 +79,7 @@ let run_expr_tests () =
   let expr17 = UnaryOp(Pos, Literal 1) in
   let expr18 = UnaryOp(Neg, Literal 1) in
   let expr19 = UnaryOp(Bang, BoolLit(true)) in
+  print_endline ("Executing expr tests...");
   assert (string_of_expr expr1 = "0");
   assert (string_of_expr expr2 = "1");
   assert (string_of_expr expr3 = "true");
@@ -95,30 +98,37 @@ let run_expr_tests () =
   assert (string_of_expr expr16 = "x = \"hello world\"");
   assert (string_of_expr expr17 = "+(1)");
   assert (string_of_expr expr18 = "-(1)");
-  assert (string_of_expr expr19 = "!(true)")
-
+  assert (string_of_expr expr19 = "!(true)");
+  print_endline ("Done.\n")
 
 (* Edge cases for expression tests *)
 let run_expr_tests_edge_cases () =
   let list_with_multiple_types = ListLit([Literal 1; BoolLit(true)]) in
   let id_with_quotes = Id("\"quotation marks\"") in
+  print_endline ("Executing expr tests for edge cases...");
   assert (string_of_expr list_with_multiple_types = "[1, true]");
-  assert (string_of_expr id_with_quotes = "\"quotation marks\"")
+  assert (string_of_expr id_with_quotes = "\"quotation marks\"");
+  print_endline ("Done.\n")
+
 
 (* Test cases for function and bind *)
 let run_expr_tests_function_and_bind_cases () =
   let hello_world_func = Function([Decl(Int, "hello_world_func")], [Expr(StrLit("hello world"))]) in
   let defn_func = Function([Defn(Int, "my_func", Assign("my_var", StrLit("my_val")))], [Expr(StrLit("hello world"))]) in
+  print_endline ("Executing expr tests for function and bind...");
   assert (string_of_expr hello_world_func = "(int hello_world_func) {\n\"hello world\";\n}");
-  assert (string_of_expr defn_func = "(int my_func = my_var = \"my_val\") {\n\"hello world\";\n}")
+  assert (string_of_expr defn_func = "(int my_func = my_var = \"my_val\") {\n\"hello world\";\n}");
+  print_endline ("Done.\n")
 
 
 (* Test cases for Call *)
 let run_expr_tests_func_invoc_cases () =
   let basic_invocation = Call(Function([Decl(Int, "my_first_func_invoc")], [Expr(StrLit("hello world"))]), [Literal 1; Literal 2; Literal 3]) in
   let multiple_arg_invocation = Call(Function([Decl(Int, "multiple_arg_invoc")], [Expr(StrLit("hello world"))]), [Literal 1; BoolLit(true); ChrLit('c')]) in
+  print_endline ("Executing expr tests for function invocation...");
   assert (string_of_expr basic_invocation = "(int my_first_func_invoc) {\n\"hello world\";\n}(1)(2)(3)");
-  assert (string_of_expr multiple_arg_invocation = "(int multiple_arg_invoc) {\n\"hello world\";\n}(1)(true)(c)")
+  assert (string_of_expr multiple_arg_invocation = "(int multiple_arg_invoc) {\n\"hello world\";\n}(1)(true)(c)");
+  print_endline ("Done.\n")
 
 let run_type_tests () =
   let typ1 = Int in
@@ -133,6 +143,7 @@ let run_type_tests () =
   let typ10 = List String in
   let typ11 = List Void in
   let typ12 = List Float in
+  print_endline ("Executing type tests...");
   assert (string_of_typ typ1 = "int");
   assert (string_of_typ typ2 = "bool");
   assert (string_of_typ typ3 = "char");
@@ -144,24 +155,29 @@ let run_type_tests () =
   assert (string_of_typ typ9 = "list<char>");
   assert (string_of_typ typ10 = "list<string>");
   assert (string_of_typ typ11 = "list<void>");
-  assert (string_of_typ typ12 = "list<float>")
+  assert (string_of_typ typ12 = "list<float>");
+  print_endline ("Done.\n")
 
 let run_type_tests_struct_cases () =
   let simple_struct_sig = StructSig("simple_struct_sig") in
   let simple_struct_mem = StructMem("my_first_signature", [Decl(Int, "declaration_int")]) in
   let complex_struct_mem = StructMem("complex_signature", [Decl(Int, "declaration_int"); Defn(String, "string_declr", StrLit("my_val")); Defn(Bool, "boolean_d", BoolLit(false))]) in
+  print_endline ("Executing type struct tests...");
   assert (string_of_typ simple_struct_sig = "simple_struct_sig");
   assert (string_of_typ simple_struct_mem = "my_first_signature int declaration_int");
-  assert (string_of_typ complex_struct_mem = "complex_signature int declaration_int,string string_declr = \"my_val\",bool boolean_d = false")
+  assert (string_of_typ complex_struct_mem = "complex_signature int declaration_int,string string_declr = \"my_val\",bool boolean_d = false");
+  print_endline ("Done.\n")
 
 
 let run_type_tests_fun_sig_cases () =
   let simple_func_sig = FunSig([Int], Int) in
   let complex_func_sig = FunSig([Int; Bool; Char; String; Void; Float], List Int) in
   let list_func_sig = FunSig([List Int; List Char], Void) in
+  print_endline ("Executing type tests for function signatures...");
   assert (string_of_typ simple_func_sig = "function<int> -> int");
   assert (string_of_typ complex_func_sig = "function<int, bool, char, string, void, float> -> list<int>");
-  assert (string_of_typ list_func_sig = "function<list<int>, list<char>> -> void")
+  assert (string_of_typ list_func_sig = "function<list<int>, list<char>> -> void");
+  print_endline ("Done.\n")
 
 let run_stmt_tests () =
   let stmt1 = Block([Expr(Zero); Expr(Zero); Expr(Zero)]) in
@@ -171,13 +187,15 @@ let run_stmt_tests () =
   let stmt5 = While(BoolLit(true), Expr(StrLit("its true"))) in
   let stmt6 = For(Decl(Int, "hello_world_func"), StrLit("its true"), StrLit("its false"), Expr(Zero)) in
   let stmt7 = If(BoolLit(true), Expr(StrLit("its true"))) in
+  print_endline ("Executing statement tests...");
   assert (string_of_stmt stmt1 = "{\n0;\n0;\n0;\n}\n");
   assert (string_of_stmt stmt2 = "0;\n");
   assert (string_of_stmt stmt3 = "int hello_world_func;\n");
   assert (string_of_stmt stmt4 = "if (true)\n\"its true\";\nelse\n\"its false\";\n");
   assert (string_of_stmt stmt5 = "while (true) \"its true\";\n");
   assert (string_of_stmt stmt6 = "for (int hello_world_func; \"its true\"; \"its false\") {\n0;\n}");
-  assert (string_of_stmt stmt7 = "if (true)\n\"its true\";\n")
+  assert (string_of_stmt stmt7 = "if (true)\n\"its true\";\n");
+  print_endline ("Done.\n")
 
 
 (* Runs all tests... look at each function for the actual cases *)
@@ -195,4 +213,4 @@ let run_tests () =
 (* Execute test suite for ast.ml *)
 let () =
   run_tests ();
-  print_endline "unit_tests_ast.ml passed"
+  print_endline "\nunit_tests_ast.ml passed.\n"

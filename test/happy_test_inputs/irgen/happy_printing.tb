@@ -1,0 +1,5 @@
+int x = 1;
+print(x);
+
+float f = 1.23;
+print(f);
