@@ -28,7 +28,7 @@ type expr =
   | FloatLit of float
   | Id of string
   | Binop of expr * bop * expr
-  | Assign of string * expr
+  | Assign of expr * expr
   | ListLit of expr list
   | StructId of string
   | Function of bind list * stmt list
@@ -121,7 +121,7 @@ let rec string_of_expr = function
   | StructId(s) -> s 
   | Id(s) -> s
   | Binop(e1, o, e2) -> string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
-  | Assign(v, e) -> v ^ " = " ^ string_of_expr e
+  | Assign(Id(v), e) -> v ^ " = " ^ string_of_expr e
   | Function(args, body) -> "(" ^ string_of_bind_list ", " args ^ ") {\n" ^ string_of_stmt_list "" body ^ "}"
   | Call(x, args) -> begin match x with
       Id id -> id ^ "(" ^ string_of_expr_list ", " args ^ ")"

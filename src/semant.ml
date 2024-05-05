@@ -28,7 +28,7 @@ let print_members = function
 let print_all_members b = List.map(print_members) b
 
 let print_members_list i = match i with
-  Assign (s, e) -> begin print_string s; print_endline(" " ^ string_of_expr e); end
+  Assign (Id(s), e) -> begin print_string s; print_endline(" " ^ string_of_expr e); end
   | _ -> print_endline (string_of_expr i)
 
 let print_all_members_list b = List.map(print_members_list) b
@@ -42,7 +42,7 @@ let compare_struct_decl_assign decl assign = match assign with
       | [], _ -> raise (Failure "Trying to assign too many struct variables")
       | _, [] -> raise (Failure "Missing assignments in struct")
       | (h :: t), (hh :: tt) -> match (h, hh) with
-            | Decl(typ, str), Assign(sstr, eexp) -> if str <> sstr then 
+            | Decl(typ, str), Assign(Id(sstr), eexp) -> if str <> sstr then 
                                         raise (Failure "Struct variable names don't match")
                                         else cmp t tt
       | _ -> raise (Failure "Not comparing a struct")
@@ -118,13 +118,22 @@ let check (program) =
             let (tylist, valid) = verify_list x in
             let slistlit = (scopes, tylist, SListLit(tylist, slist)) in
             if valid then (scopes, List(tylist), SListLit(tylist, slist)) else raise (Failure "the types of this list dont match")
-        | Assign(var, e) as ex ->
-          let lt = type_of_identifier scopes var
-          and (scopes, rt, e') = check_expr scopes e in
+        | Assign(Index(Id id, i), e) ->
+          let lt = begin match (type_of_identifier scopes id) with List t -> t | _ -> raise (Failure "must be a list") end in
+          let (_, idt, id') = check_expr scopes (Index(Id id, i)) in
+          let (_, rt, e') = check_expr scopes e in 
+          let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^
+                    string_of_typ rt ^ " in " ^ string_of_expr e in
+          check_assign lt rt err;  
+          (scopes, lt, SAssign((idt, id'), (rt, e')))
+      | Assign(Id(id), e) as ex ->
+          let lt = (type_of_identifier scopes id) in
+          let (_, rt, e') = check_expr scopes e in
+          let (_, idt, id') = check_expr scopes (Id id) in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^
                     string_of_typ rt ^ " in " ^ string_of_expr ex in
           check_assign lt rt err;
-          (scopes, lt, SAssign(var, (rt, e')))
+          (scopes, lt, SAssign((idt, id'), (rt, e')))
         | Id id -> (scopes, type_of_identifier scopes id, SId id)
         | Binop (lhs, op, rhs) -> let (_, t1, slhs) = check_expr scopes lhs and (_, t2, srhs) = check_expr scopes rhs in
           begin
@@ -227,7 +236,7 @@ let check (program) =
       let (_, x, _) = check_expr scopes ex in x
 
       (* takes an identifier and returns its type *)
-    and type_of_identifier scopes s =
+    and type_of_identifier scopes (s : string) =
       find_in_scopes s scopes
 
     (* checks for duplicate bindings in top scope*)
@@ -245,14 +254,15 @@ let check (program) =
          varirables within a struct. The struct name is prepended
          to the variable name to differentiate *)
     and check_expr_struct scopes struct_name = function
-      Assign(var, e) as ex ->
+      Assign(Id var, e) as ex ->
           let lt = type_of_identifier scopes (struct_name ^ "." ^ var)
-          and (scopes, rt, e') = check_expr scopes e in
+          and (_, rt, e') = check_expr scopes e 
+          and (_, idt, id') = check_expr scopes (Id var) in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^
                     string_of_typ rt ^ " in " ^ string_of_expr ex in
           check_assign lt rt err;
           (* print_endline (map_to_str scopes); (* Print statement should be removed *) *)
-          (scopes, lt, SAssign(var, (rt, e')))
+          (scopes, lt, SAssign((idt, id'), (rt, e')))
         | _ -> raise (Failure "Not a struct assignment")
 
 

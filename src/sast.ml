@@ -12,7 +12,7 @@ and sx =
   | SFloatLit of float
   | SId of string
   | SBinop of sexpr * bop * sexpr
-  | SAssign of string * sexpr
+  | SAssign of sexpr * sexpr
   | SListLit of typ * sexpr list
   | SFunction of sbind list * sstmt list
   | SCall of sexpr * sexpr list
@@ -41,7 +41,6 @@ and program = {
   sbody: sstmt list;
 }
 
-
 (* Pretty-printing functions *)
 
 let rec string_of_sexpr (t, e) = 
@@ -58,7 +57,7 @@ let rec string_of_sexpr (t, e) =
     | SId(s) -> s
     | SStructId(s) -> s
     | SBinop(e1, o, e2) -> string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
-    | SAssign(v, e) -> v ^ " = " ^ string_of_sexpr e
+    | SAssign((_, SId(v)), e) -> v ^ " = " ^ string_of_sexpr e
     | SFunction(args, body) -> "(" ^ string_of_sbind_list ", " args ^ ") {\n\t" ^ string_of_sstmt_list "\t" body ^ "\n}"
     | SCall(sx, args) -> string_of_sexpr sx ^ 
                         "(" ^ string_of_sexpr_list ", " args ^ ")"

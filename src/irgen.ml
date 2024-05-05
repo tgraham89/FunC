@@ -284,8 +284,22 @@ let rec gen_stmt (builder, scope) = function
 				 | A.Lequal      -> L.build_icmp L.Icmp.Sle
 				 | _        -> raise (Failure "Unimplemented binop")
 			end ) e1 e2 "tmp" builder
-	| (_, SAssign (s, e)) -> let e' = gen_expr builder scope e in
-				ignore(L.build_store e' (fst(lookup s scope)) builder); e'
+	| (_, (SAssign (lhs, e))) -> 
+      let e' = gen_expr builder scope e in 
+      (begin 
+        match lhs with 
+        (_, SId id) -> ignore(L.build_store e' (fst(lookup id scope)) builder); e'
+        | (_, SIndex (lst, i)) ->
+          let lst' = gen_expr builder scope lst in 
+          let l = gen_expr builder scope i in 
+          let i' = L.build_fptosi l i32_t "i" builder in 
+          let x = L.build_in_bounds_gep lst' [| i' |] "x" builder in 
+          ignore (L.build_store e' x builder); e'
+        | _ -> raise (Failure "something went wrong")
+        end)
+	(* | (_, SAssign ((_, SIndex(SId id, i)), e)) ->  *)
+	(*      let e' = gen_expr builder scope e in *)
+	(*      ignore(L.build_store e' (fst(lookup id scope)) builder); e' *)
 	(* | (_, SListLit (a, b)) -> raise (Failure "SListLit not implemented yet")  *)
 	| (_, SListLit (typ, lst)) -> 
       let n = L.const_int i32_t (List.length lst) in 
