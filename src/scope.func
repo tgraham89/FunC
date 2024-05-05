@@ -3,6 +3,10 @@ int a = 2;
 int b = 3;
 
 function<int> -> int f = (int x) => {
+	function<int> -> int g = (int y) => {
+		return a + b + x + y;
+	};
+	print(g(2));
 	return a + b + x;
 };
 
