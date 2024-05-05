@@ -76,7 +76,7 @@ let access_variable_from_scope context builder scope_val var_index var_name expe
 	let vars_array = L.build_load vars_array_ptr "vars_array" builder in
 	let var_ptr = L.build_gep vars_array [| L.const_int (L.i32_type context) var_index |] "var_ptr" builder in
 	let var_val = L.build_load var_ptr "var_val" builder in
-	L.build_bitcast var_val (L.pointer_type expected_type) "casted_val" builder
+	L.build_bitcast var_val (L.pointer_type expected_type) var_name builder
 
 let define_function_with_scope context module_builder scope_struct_type arg_types ret_type =
 	let scope_ptr_type = L.pointer_type scope_struct_type in
@@ -218,6 +218,27 @@ let rec lookup name scope =
 		| Some parent_scope -> lookup name parent_scope
 		| None -> raise (Failure ("Variable not found: " ^ name)) in
 
+let rec gen_outer_scope_vars scope scope_val builder =
+	(* print_endline("num_vars: " ^ string_of_int num_vars); *)
+
+	match scope.parent with
+			| Some parent_scope -> 
+				let parent_ptr = L.build_struct_gep scope_val 0 "parent_ptr" builder in
+				let parent_val = L.build_load parent_ptr "parent_val" builder in
+				gen_outer_scope_vars parent_scope parent_val builder;
+			| None -> None;
+
+	let num_vars = StringMap.cardinal scope.vars in
+	let idx = ref 0 in
+	List.iter (fun var_name ->
+			(* print_endline("var_name: " ^ var_name ^ " idx: " ^ string_of_int !idx); *)
+			if !idx < num_vars then
+					let llvm_type = snd(lookup var_name scope) in
+					let var_val = access_variable_from_scope context builder scope_val !idx var_name llvm_type in
+					incr idx
+	) (List.rev scope.var_names);
+
+in
 
 let rec gen_stmt (builder, scope) = function
 	| SExpr expr -> ignore(gen_expr builder scope expr); (builder, scope)
@@ -339,22 +360,12 @@ let rec gen_stmt (builder, scope) = function
 			in
 			ignore (L.build_store scope_formal scope_alloca builder);
 
-			(* print_endline("num_vars: " ^ string_of_int num_vars); *)
-			let idx = ref 0 in
-			List.iter (fun var_name ->
-					(* print_endline("var_name: " ^ var_name ^ " idx: " ^ string_of_int !idx); *)
-					if !idx < num_vars then
-							let llvm_type = snd(lookup var_name scope) in
-							let var_val = access_variable_from_scope context builder scope_formal !idx var_name llvm_type in
-							L.set_value_name var_name var_val;
-							incr idx
-			) (List.rev scope.var_names);
+			gen_outer_scope_vars scope scope_formal builder;
 
 			let local_vars =
 				let add_formal m bind p = 
 					let (t, n) = begin match bind with
 						SDecl(ty, s) -> (ty, s) | SDefn(ty, s, _) -> (ty, s) end in
-					L.set_value_name n p;
 					let llvm_type = ltype_of_typ t in
 					let local = L.build_alloca llvm_type n builder in
 					ignore (L.build_store p local builder);
