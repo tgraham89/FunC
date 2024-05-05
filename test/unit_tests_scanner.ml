@@ -119,13 +119,15 @@ let run_primitive_tests () =
   let actual_tokens5 = string_of_tokens test5 in
   let actual_tokens6 = string_of_tokens test6 in
   let actual_tokens7 = string_of_tokens test7 in
+  print_endline ("Running primitive tests...");
   assert (actual_tokens1 = ["INT"; "ID"; "ASSIGN"; "LITERAL"; "SEMI"; "EOF"]);
   assert (actual_tokens2 = ["STRING"; "ID"; "ASSIGN"; "STRING_LIT"; "SEMI"; "EOF"]);
   assert (actual_tokens3 = ["BOOL"; "ID"; "ASSIGN"; "BLIT"; "SEMI"; "EOF"]);
   assert (actual_tokens4 = ["FLOAT"; "ID"; "ASSIGN"; "FLOAT_LIT"; "SEMI"; "EOF"]);
   assert (actual_tokens5 = ["CHAR"; "ID"; "ASSIGN"; "STRING_LIT"; "SEMI"; "EOF"]);
   assert (actual_tokens6 = ["VOID"; "ID"; "SEMI"; "EOF"]);
-  assert (actual_tokens7 = ["BOOL"; "ID"; "ASSIGN"; "BLIT"; "SEMI"; "EOF"])
+  assert (actual_tokens7 = ["BOOL"; "ID"; "ASSIGN"; "BLIT"; "SEMI"; "EOF"]);
+  print_endline ("Done.\n")
 
 (* Series of tests for operators *) 
 let run_operators_tests () =
@@ -167,6 +169,7 @@ let run_operators_tests () =
   let actual_tokens17 = string_of_tokens test17 in
   let actual_tokens18 = string_of_tokens test18 in
   let actual_tokens19 = string_of_tokens test19 in
+  print_endline ("Running operator tests...");
   assert (actual_tokens1 = ["BOOL"; "ID"; "ASSIGN"; "LITERAL"; "GT"; "LITERAL"; "SEMI"; "EOF"]);
   assert (actual_tokens2 = ["BOOL"; "ID"; "ASSIGN"; "LITERAL"; "LT"; "LITERAL"; "SEMI"; "EOF"]);
   assert (actual_tokens3 = ["BOOL"; "ID"; "ASSIGN"; "LITERAL"; "GEQ"; "LITERAL"; "SEMI"; "EOF"]);
@@ -185,7 +188,9 @@ let run_operators_tests () =
   assert (actual_tokens16 = ["INT"; "ID"; "ASSIGN"; "LITERAL"; "TIMES"; "LITERAL"; "SEMI"; "EOF"]);
   assert (actual_tokens17 = ["INT"; "ID"; "ASSIGN"; "LITERAL"; "DIVIDE"; "LITERAL"; "SEMI"; "EOF"]);
   assert (actual_tokens18 = ["INT"; "ID"; "ASSIGN"; "LITERAL"; "MOD"; "LITERAL"; "SEMI"; "EOF"]);
-  assert (actual_tokens19 = ["BOOL"; "ID"; "ASSIGN"; "LITERAL"; "VBAR"; "LITERAL"; "SEMI"; "EOF"])
+  assert (actual_tokens19 = ["BOOL"; "ID"; "ASSIGN"; "LITERAL"; "VBAR"; "LITERAL"; "SEMI"; "EOF"]);
+  print_endline ("Done.\n")
+
 
 (* Series of tests for statements like if/else, loops, etc *) 
 let run_statement_tests () = 
@@ -199,6 +204,7 @@ let run_statement_tests () =
   let actual_tokens3 = string_of_tokens test3 in
   let actual_tokens4 = string_of_tokens test4 in
   let actual_tokens5 = string_of_tokens test5 in
+  print_endline ("Running statement tests...");
   assert (actual_tokens1 = ["FOR"; "LPAREN"; "INT"; "ID"; "ASSIGN"; "LITERAL"; "SEMI"; "ID"; "LT"; "LITERAL"; "SEMI";
     "ID"; "ASSIGN"; "ID"; "PLUS"; "LITERAL"; "RPAREN"; "LBRACE"; "LITERAL"; "SEMI"; "RBRACE"; "EOF"]);
   assert (actual_tokens2 = ["FUNC"; "LT"; "GT"; "OUTPUT"; "INT"; "ID"; "ASSIGN"; "LPAREN"; "RPAREN"; "FUNCARROW";
@@ -208,7 +214,9 @@ let run_statement_tests () =
   assert (actual_tokens4 = ["STRUCT"; "ID"; "LBRACE"; "STRING"; "ID"; "COMMA"; "INT"; "ID"; "COMMA";
     "RBRACE"; "SEMI"; "EOF"]);
   assert (actual_tokens5 = ["LAMBDA"; "OUTPUT"; "INT"; "ID"; "ASSIGN"; "LPAREN"; "RPAREN"; "FUNCARROW";
-    "LBRACE"; "RETURN"; "LITERAL"; "SEMI"; "RBRACE"; "SEMI"; "EOF"])
+    "LBRACE"; "RETURN"; "LITERAL"; "SEMI"; "RBRACE"; "SEMI"; "EOF"]);
+  print_endline ("Done.\n")
+
 
 
 (* Runs all tests *) 
@@ -220,6 +228,6 @@ let run_tests () =
 (* Execute test suite for scanner file *)
 let () =
   run_tests ();
-  print_endline "unit_tests_scanner.ml passed"
+  print_endline "\nunit_tests_scanner.ml passed.\n"
 
 

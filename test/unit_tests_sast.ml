@@ -305,4 +305,4 @@ let run_tests () =
 (* Execute test suite for sast.ml *)
 let () =
   run_tests ();
-  print_endline "unit_tests_sast.ml passed"
+  print_endline "\nunit_tests_sast.ml passed.\n"

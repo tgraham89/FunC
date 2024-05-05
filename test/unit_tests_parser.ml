@@ -86,4 +86,4 @@ let run_tests () =
 (* These tests are read from the test inputs folder. *)
 let () =
   run_tests ();
-  print_endline "unit_tests_parser.ml passed"
+  print_endline "\nunit_tests_parser.ml passed.\n"

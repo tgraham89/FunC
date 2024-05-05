@@ -5,7 +5,6 @@ open Semant
 unit_tests_irgen.ml
 
 Runs UTs against various test cases defined in the happy_test_inputs or unhappy_test_inputs folder.
-
 This file additionally produces pretty output, which can be seen in the `unit_tests_irgen.out` file in the project dir.
 This shows you what test ran, and that it executed as expected.
 It will also print out the resulting error thrown so you know exactly how the test failed.
@@ -14,8 +13,8 @@ What the test does:
 1. Read input file.
 2. Feed the file to scanner, parser as usual.
 3. Semantically check the output.
-4. If successful, returns a string program.
-5. Assert that no error was thrown for happy tests, and semantic error was thrown for unhappy tests.
+4. Pass the semantically checked output into IR gen, which produces IR code.
+5. Assert that on success, IR code was produced. Assert that on error, IR code was not produced.
 *)
 
 
@@ -41,11 +40,11 @@ let check_exception_was_raised file_name =
     let opened_file = open_in file_name in
     let string_program = feed_irgen opened_file in
     assert (String.length string_program != 0);
-    print_endline ("---------\nThe program was generated correctly: " ^ string_program ^ " ---------\n\n");
+    print_endline ("\n\n---------\nThe program was generated correctly:\n\n" ^ string_program ^ "\n---------\n\n");
     close_in opened_file;
     true
   with
-    Failure ex -> print_endline ("\nTest failed due to exception: " ^ ex); false
+    Failure ex -> print_endline ("\nException occurred during the test: " ^ ex); false
     | _ -> print_endline ("\nProgram was not generated due to parsing failure."); false
 
 
@@ -93,4 +92,4 @@ let run_tests () =
 (* These tests are read from the test inputs folder. *)
 let () =
   run_tests ();
-  print_endline "unit_tests_irgen.ml passed"
+  print_endline "\nunit_tests_irgen.ml passed.\n"

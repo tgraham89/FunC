@@ -41,7 +41,7 @@ let check_exception_was_raised file_name =
     close_in opened_file;
     true
   with
-    Failure ex -> print_endline ("\nTest failed due to exception: " ^ ex); false
+    Failure ex -> print_endline ("\nException occurred during the test: " ^ ex); false
     | _ -> print_endline ("\nProgram was not generated due to parsing failure."); false
 
 
@@ -89,4 +89,4 @@ let run_tests () =
 (* These tests are read from the test inputs folder. *)
 let () =
   run_tests ();
-  print_endline "unit_tests_semant.ml passed"
+  print_endline "\nunit_tests_semant.ml passed.\n"
