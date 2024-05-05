@@ -1,0 +1,8 @@
+function<int> -> int f = (int my_input) => {
+    int x = 1;
+    print(x);
+
+    float f = 1.23;
+    print(f);
+    return 0;
+};

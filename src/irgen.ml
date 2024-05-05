@@ -97,6 +97,7 @@ let translate ({sbody} as program) =
 	let i32_t      = L.i32_type    context
 	and i8_t       = L.i8_type     context
 	and i1_t       = L.i1_type     context
+	and float_t    = L.double_type context
 	and void_t     = L.void_type   context 
 	(* and functyp    = L.function_type voidptr (Array.of_list [voidptr; voidptr]) context *)
 in
@@ -105,7 +106,7 @@ in
 	let rec ltype_of_typ = function
 			A.Int   -> i32_t
 		| A.Bool  -> i1_t
-		| A.Float -> L.float_type context
+		| A.Float -> float_t
 		| A.String -> L.pointer_type i8_t 
 		| A.FunSig(args_typ, ret_typ) -> 
 			let lret_typ = ltype_of_typ ret_typ in
@@ -206,6 +207,7 @@ in
 
 let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder in
 let str_format_str = L.build_global_stringptr "%s\n" "fmt" builder in
+let float_format_str = L.build_global_stringptr "%f\n" "fmt" builder in
 
 
 let rec lookup name scope = 
@@ -264,7 +266,7 @@ let rec gen_stmt (builder, scope) = function
 	| (_, SBoolLit b) -> L.const_int i1_t (if b then 1 else 0)
 	| (_, SStrLit s) -> L.build_global_stringptr s "str" builder
 	| (_, SChrLit c) -> raise (Failure "SChrLit not implemented yet")
-	| (_, SFloatLit c) -> raise (Failure "SFloatLit not implemented yet")
+	| (_, SFloatLit f) -> L.const_float float_t f
 	| (_, SId id) ->
 		let val_ptr = fst(lookup id scope) in
 		L.build_load val_ptr id builder
@@ -357,6 +359,9 @@ let rec gen_stmt (builder, scope) = function
 				"printf" builder
 	| (s, SCall((_,SId("print_int")), [e])) ->
 		L.build_call printf_func [| int_format_str ; (gen_expr builder scope e) |]
+			"printf" builder
+	| (s, SCall((_,SId("print_float")), [e])) ->
+		L.build_call printf_func [| float_format_str ; (gen_expr builder scope e) |]
 			"printf" builder
 	| (s, SCall((_,SId(name)), args)) ->
 		(* let fdef = lookup name scope in
