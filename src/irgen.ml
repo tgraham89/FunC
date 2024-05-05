@@ -71,7 +71,7 @@ let rec create_llvm_scope context builder scope scope_struct_type =
 
 	
 
-let access_variable_from_scope context builder scope_val var_index var_name expected_type =
+let gen_scope_vars context builder scope_val var_index var_name expected_type =
 	let vars_array_ptr = L.build_struct_gep scope_val 1 "vars_array_ptr" builder in
 	let vars_array = L.build_load vars_array_ptr "vars_array" builder in
 	let var_ptr = L.build_gep vars_array [| L.const_int (L.i32_type context) var_index |] "var_ptr" builder in
@@ -89,7 +89,7 @@ let add_variable name (llvm_val, llvm_type) scope =
 	{ scope with vars = new_vars; var_names = new_var_names }
 
 (* translate : Sast.program -> Llvm.module *)
-let translate ({sbody} as program) =
+let translate ({sbody}) =
 	let context    = L.global_context () in
 
 	let the_module = L.create_module context "FunC" in
@@ -138,9 +138,6 @@ in
 	let printf_func : L.llvalue =
 		L.declare_function "printf" printf_t the_module in
 
-	let global_vars = StringMap.empty in 
-	let main_vars = StringMap.empty in 
-
 	let global_scope = create_scope () in
 
 	let map_to_str m = 
@@ -159,51 +156,7 @@ in
 		let the_function = main_func in
 		let builder = L.builder_at_end context (L.entry_block main_func) in
 
-	let add_formal m (t, n) p =
-				L.set_value_name n p;
-				let llvm_typ = ltype_of_typ t in
-				let local = L.build_alloca llvm_typ n builder in
-				ignore (L.build_store p local builder);
-				add_variable n (local, llvm_typ) m
-
-			(* Allocate space for any locally declared variables and add the
-			 * resulting registers to our map *)
-			(* and add_local m (t, n) =
-				let local_var = L.build_alloca (ltype_of_typ t) n builder
-				in add_variable n local_var m *)
-			in
-	(* Define a function to print a string *)
-	(* let print_string_fn = 
-		let print_str_ty = L.function_type void_t [| L.pointer_type i8_t |] in
-		L.define_function "print" print_str_ty the_module in
-		let print_string_builder = L.builder_at_end context (L.entry_block print_string_fn) in
-		let str_arg = L.param print_string_fn 0 in
-		let print_format_str = L.build_global_stringptr "%s\n" "fmt" print_string_builder in
-		let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder in
-		ignore(L.build_call print_string_fn [| print_format_str; str_arg |] "" print_string_builder);
-		ignore(L.build_ret_void print_string_builder); *)
-
-	 (* Define a function to print a string *)
-	(* let print_int_fn =
-		let print_int_ty = L.function_type void_t [| i32_t |] in
-		L.define_function "print_int" print_int_ty the_module in
-		let print_int_builder = L.builder_at_end context (L.entry_block print_int_fn) in
-		let int_arg = L.param print_int_fn 0 in
-		let print_format_str = L.build_global_stringptr "%d\n" "fmt" print_int_builder in
-		ignore(L.build_call print_func [| print_format_str; int_arg |] "" print_int_builder);
-		ignore(L.build_ret_void print_int_builder); *)
-
-	let scope_type context =
-		let struct_type = L.named_struct_type context "scope" in
-		L.struct_set_body struct_type [| L.pointer_type (L.i8_type context) |] false;
-		struct_type
-
-
-	in let closure_type context = L.pointer_type (scope_type context) in
-	let closure_typ = closure_type context
 	(* and functyp    = L.function_type voidptr (Array.of_list [voidptr; voidptr]) context *)
-
-in
 
 let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder in
 let str_format_str = L.build_global_stringptr "%s\n" "fmt" builder in
@@ -226,7 +179,7 @@ let rec gen_outer_scope_vars scope scope_val builder =
 				let parent_ptr = L.build_struct_gep scope_val 0 "parent_ptr" builder in
 				let parent_val = L.build_load parent_ptr "parent_val" builder in
 				gen_outer_scope_vars parent_scope parent_val builder;
-			| None -> None;
+			| None -> ();
 
 	let num_vars = StringMap.cardinal scope.vars in
 	let idx = ref 0 in
@@ -234,7 +187,7 @@ let rec gen_outer_scope_vars scope scope_val builder =
 			(* print_endline("var_name: " ^ var_name ^ " idx: " ^ string_of_int !idx); *)
 			if !idx < num_vars then
 					let llvm_type = snd(lookup var_name scope) in
-					let var_val = access_variable_from_scope context builder scope_val !idx var_name llvm_type in
+					ignore(gen_scope_vars context builder scope_val !idx var_name llvm_type);
 					incr idx
 	) (List.rev scope.var_names);
 
@@ -256,8 +209,6 @@ let rec gen_stmt (builder, scope) = function
 	| SStructDecl _ -> (builder, scope) 
 	| SReturn expr ->
 		gen_return builder scope expr; (builder, scope)
-	| stmt ->
-		raise (Failure ("Unhandled statement: " ^ string_of_sstmt stmt))
 
 
 	and gen_bind (builder, scope) = function
@@ -344,7 +295,6 @@ let rec gen_stmt (builder, scope) = function
 		let name = (anon_name 10)
 			and formal_types =
 				Array.of_list (List.map (fun (t) -> ltype_of_typ t) argtyps) in
-			let num_vars = StringMap.cardinal scope.vars in
 			let ret_type = ltype_of_typ rtyp in
 			let ftype = define_function_with_scope context the_module scope_struct_type formal_types ret_type in
 		(* in let ftype = L.function_type (ltype_of_typ rtyp) formal_types in *)
@@ -377,7 +327,7 @@ let rec gen_stmt (builder, scope) = function
 				formals
 			in
 
-			List.fold_left gen_stmt (builder, local_vars) body;
+			ignore(List.fold_left gen_stmt (builder, local_vars) body);
 			fdef
 	| (s, SCall((_,SId("print_str")), [e])) ->
 			L.build_call printf_func [| str_format_str ; (gen_expr builder scope e) |]
@@ -508,8 +458,8 @@ and gen_return builder scope expr =
 
 	(* List.iter (gen_stmt builder) sbody; *)
 	let builder = L.builder_at_end context (L.entry_block main_func) in
-	let final_builder = List.fold_left gen_stmt (builder, global_scope) sbody in
+	let (final_builder, scope) = List.fold_left gen_stmt (builder, global_scope) sbody in
 
-	ignore(L.build_ret (L.const_int i32_t 0) builder);
+	ignore(L.build_ret (L.const_int i32_t 0) final_builder);
 	the_module
 
