@@ -94,23 +94,23 @@ closed_stmt:
    IF LPAREN expr_rule RPAREN closed_stmt ELSE closed_stmt               { IfElse ($3, $5, $7)    }
   | WHILE LPAREN expr_rule RPAREN closed_stmt                             { While ($3, $5)         }
   | FOR LPAREN bind_rule SEMI expr_rule SEMI expr_rule RPAREN closed_stmt { For ($3, $5, $7, $9)   }
-  | STRUCT STRUCT_ID LBRACE struct_member_rule RBRACE SEMI                   { StructDecl {sname = $2; members = $4}}
+  // | STRUCT STRUCT_ID LBRACE struct_member_rule RBRACE SEMI                   { StructDecl {sname = $2; members = $4}}
   // | STRUCT_ID ID LBRACE struct_member_assign_rule RBRACE                    { Struct_decl ($2, $4)}
   | simple_stmt                                                             { $1 }
 
-struct_member_rule:
-  struct_member                                                             { [$1] }
-  | struct_member_rule struct_member                                        {$1 @ [$2]}
+// struct_member_rule:
+//   struct_member                                                             { [$1] }
+//   | struct_member_rule struct_member                                        {$1 @ [$2]}
 
-struct_member:
-  typ_rule ID COMMA                                                       {Decl($1, $2)}
+// struct_member:
+//   typ_rule ID COMMA                                                       {Decl($1, $2)}
 
-struct_member_assign_rule:
-  struct_member_assign                                                      {[$1]}
-  | struct_member_assign_rule struct_member_assign                          {$1 @ [$2]}
+// struct_member_assign_rule:
+//   struct_member_assign                                                      {[$1]}
+//   | struct_member_assign_rule struct_member_assign                          {$1 @ [$2]}
 
-struct_member_assign:
-   ID ASSIGN expr_rule COMMA                                    { Assign(Id $1, $3) }
+// struct_member_assign:
+//    ID ASSIGN expr_rule COMMA                                    { Assign(Id $1, $3) }
 
 simple_stmt:
   expr_rule SEMI                                                          { Expr $1                }
@@ -122,13 +122,14 @@ simple_stmt:
 func_rule:
   LPAREN bind_list_rule RPAREN FUNCARROW LBRACE stmt_list_rule RBRACE { Function($2, $6) }        
 
+
 expr_rule:
   | BLIT                          { BoolLit $1            }
   | CHAR_LIT                      { ChrLit $1             }
   | STRING_LIT                    { StrLit $1             }
   | FLOAT_LIT                     { FloatLit $1 }
   | LITERAL                       { Literal $1 }
-  | STRUCT_ID                     { StructId $1 }
+  // | STRUCT_ID                     { StructId $1 }
   | LBRACK expr_list_rule RBRACK  { ListLit($2) }
   | ID                            { Id $1 }
   | PLUS expr_rule  { UnaryOp (Pos, $2) }
@@ -149,17 +150,17 @@ expr_rule:
   | expr_rule GEQ expr_rule       { Binop ($1, Gequal, $3) }
   | expr_rule AND expr_rule       { Binop ($1, And, $3) }
   | expr_rule OR expr_rule        { Binop ($1, Or, $3) }
-  | expr_rule LBRACK expr_rule RBRACK         { Index($1, $3) }
+  | ID LBRACK expr_rule RBRACK         { Index(Id $1, $3) }
   | expr_rule NOT expr_rule       { Binop ($1, Not, $3) }
-  | ID ASSIGN expr_rule           { Assign (Id($1), $3) }
-  | ID LBRACK expr_rule RBRACK ASSIGN expr_rule           { Assign (Index(Id $1, $3), $3) }
+  // | ID ASSIGN expr_rule           { Assign (Id($1), $3) }
+  // | ID LBRACK expr_rule RBRACK ASSIGN expr_rule        { Assign (Index(Id $1, $3), $3) }
   | expr_rule ASSIGN expr_rule           { Assign ($1, $3) }
   | ID LPAREN expr_list_rule RPAREN      { Call((Id $1), $3) }
   | func_rule                                   { $1 }
   | func_rule LPAREN expr_list_rule RPAREN      { Call($1, $3) }        
   | LPAREN expr_rule RPAREN       { $2 }
-  | LBRACE struct_member_assign_rule RBRACE { StructAssign($2)}
+  // | LBRACE struct_member_assign_rule RBRACE { StructAssign($2)}
   // | STRUCT STRUCT_ID LBRACE stmt_list_rule RBRACE { StructCreate($2, $4)}
   // | ID DOT ID                     { StructAccess (StructId($1), Id($3))}
-  | ID DOT ID                     { StructAccess (StructId($1 ^ "." ^ $3))}
-  | ID DOT ID ASSIGN expr_rule {Assign(Id ($1 ^ "." ^ $3), $5)}
+  // | ID DOT ID                     { StructAccess (StructId($1 ^ "." ^ $3))}
+  // | ID DOT ID ASSIGN expr_rule {Assign(Id ($1 ^ "." ^ $3), $5)}

@@ -130,9 +130,10 @@ let rec string_of_expr = function
       | _ -> raise (Failure "only functions are callable types") end
   | StructAssign(e) -> "{\n" ^ string_of_expr_list ",\n" e ^ ",\n}"
   | StructAccess(str) -> string_of_expr str
-  | UnaryOp(op, ex) -> match op with Neg -> "-(" ^ string_of_expr ex ^ ")"
+  | UnaryOp(op, ex) -> begin match op with Neg -> "-(" ^ string_of_expr ex ^ ")"
                                     | Pos -> "+(" ^  string_of_expr ex ^ ")"
-                                    | Bang -> "!(" ^ string_of_expr ex ^ ")"
+                                    | Bang -> "!(" ^ string_of_expr ex ^ ")" end
+  | Index(id, i) -> string_of_expr id ^ " at index " ^  string_of_expr i
 and
 string_of_expr_list delim = function
   [] -> ""
