@@ -118,6 +118,9 @@ let check (program) =
             let (tylist, valid) = verify_list x in
             let slistlit = (scopes, tylist, SListLit(tylist, slist)) in
             if valid then (scopes, List(tylist), SListLit(tylist, slist)) else raise (Failure "the types of this list dont match")
+        | ListComp (n, ex) -> 
+          let rec replicate = function m when m > 0 -> ex :: replicate (m - 1) | _ -> [] in
+          check_expr scopes (ListLit (replicate n))
         | Assign(Index(Id id, i), e) ->
           let lt = begin match (type_of_identifier scopes id) with List t -> t | _ -> raise (Failure "must be a list") end in
           let (_, idt, id') = check_expr scopes (Index(Id id, i)) in
