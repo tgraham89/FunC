@@ -1,0 +1,15 @@
+int y = 2;
+function<int> -> int a = (int x) => {
+	return x;
+};
+
+function<function<int> -> int> -> int f = (function<int> -> int g) => {
+	return g(1) + y;
+};
+
+
+print(f((int z) => {
+	return z;
+}));
+
+print(f(a));

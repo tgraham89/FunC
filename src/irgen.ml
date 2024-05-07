@@ -61,7 +61,6 @@ let rec create_llvm_scope context builder scope scope_struct_type =
 					ignore (L.build_store casted_val var_ptr builder);
 					incr idx
 	) (List.rev scope.var_names);
-	(* TODO: handle recursion for scope.parents, we should import all variables from outer scopes *)
 
 	(* Store the array pointer in the scope structure *)
 	let vars_ptr_field = L.build_struct_gep scope_val 1 "vars_array_ptr" builder in
@@ -71,14 +70,14 @@ let rec create_llvm_scope context builder scope scope_struct_type =
 
 	
 
-let gen_scope_vars context builder scope_val var_index var_name expected_type =
+let gen_scope_var context builder scope_val var_index var_name expected_type =
 	let vars_array_ptr = L.build_struct_gep scope_val 1 "vars_array_ptr" builder in
 	let vars_array = L.build_load vars_array_ptr "vars_array" builder in
-	let var_ptr = L.build_gep vars_array [| L.const_int (L.i32_type context) var_index |] "var_ptr" builder in
-	let var_val = L.build_load var_ptr "var_val" builder in
+	let var_ptr = L.build_gep vars_array [| L.const_int (L.i32_type context) var_index |] (var_name ^ "_ptr") builder in
+	let var_val = L.build_load var_ptr (var_name ^ "_load") builder in
 	L.build_bitcast var_val (L.pointer_type expected_type) var_name builder
 
-let define_function_with_scope context module_builder scope_struct_type arg_types ret_type =
+let get_llvm_function_type context module_builder scope_struct_type arg_types ret_type =
 	let scope_ptr_type = L.pointer_type scope_struct_type in
 	let func_type = L.function_type ret_type (Array.append [| scope_ptr_type |] arg_types) in
 	func_type
@@ -99,7 +98,6 @@ let translate ({sbody}) =
 	and i1_t       = L.i1_type     context
 	and float_t    = L.double_type context
 	and void_t     = L.void_type   context 
-	(* and functyp    = L.function_type voidptr (Array.of_list [voidptr; voidptr]) context *)
 in
 	let scope_struct_type = define_scope_struct context in
 	(* Types *)
@@ -111,27 +109,11 @@ in
 		| A.FunSig(args_typ, ret_typ) -> 
 			let lret_typ = ltype_of_typ ret_typ in
 			let largs_typ = Array.of_list (List.map ltype_of_typ args_typ) in
-			L.function_type lret_typ largs_typ
+			L.pointer_type (get_llvm_function_type context the_module scope_struct_type largs_typ lret_typ)
     | A.List(ty) -> L.pointer_type (ltype_of_typ ty)
     | _ -> raise (Failure ("type match not found"))
 	in
 
-	(* Initialize and add global variables to the LLVM module *)
-	(* let init_global_vars (stmts : sstmt list) : L.llvalue StringMap.t =
-		let add_global m = function
-			| SBind (SDecl (typ, name)) ->
-				let llvm_type = ltype_of_typ typ in
-				let init_val = L.const_int llvm_type 0 in
-				StringMap.add name (L.define_global name init_val the_module) m
-			(* TODO: This initializes globals that are assigned to 0, need to evaluate expression and assign it to init_val *)
-			| SBind (SDefn (typ, name, _)) ->
-				let llvm_type = ltype_of_typ typ in
-				let init_val = L.const_int llvm_type 0 in
-				StringMap.add name (L.define_global name init_val the_module) m
-			| _ -> m
-		in
-		List.fold_left add_global StringMap.empty stmts
-	in *)
 
 	let printf_t : L.lltype =
 		L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
@@ -144,10 +126,6 @@ in
 		let inners = List.map (fun (k, v) -> k ^ " -> " ^ (string_of_int v)) (StringMap.bindings m)
 		in "[" ^ (String.concat ", " inners) ^ "]" in
 
-	(* Define the print function *)
-	(* let print_func =
-		let printf_ty = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
-		L.declare_function "printf" printf_ty the_module in *)
 		
 	(* Define the main function *)
 	let main_func = 
@@ -156,7 +134,6 @@ in
 		let the_function = main_func in
 		let builder = L.builder_at_end context (L.entry_block main_func) in
 
-	(* and functyp    = L.function_type voidptr (Array.of_list [voidptr; voidptr]) context *)
 
 let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder in
 let str_format_str = L.build_global_stringptr "%s\n" "fmt" builder in
@@ -187,7 +164,7 @@ let rec gen_outer_scope_vars scope scope_val builder =
 			(* print_endline("var_name: " ^ var_name ^ " idx: " ^ string_of_int !idx); *)
 			if !idx < num_vars then
 					let llvm_type = snd(lookup var_name scope) in
-					ignore(gen_scope_vars context builder scope_val !idx var_name llvm_type);
+					ignore(gen_scope_var context builder scope_val !idx var_name llvm_type);
 					incr idx
 	) (List.rev scope.var_names);
 
@@ -217,17 +194,11 @@ let rec gen_stmt (builder, scope) = function
 		let init_val = L.const_int llvm_type 0 in
 		let llvm_val = L.define_global name init_val the_module in
 		let scope = add_variable name (llvm_val, llvm_type) scope in
-		(* let local_var = add_local main_vars (typ, name) in *)
 		(builder, scope)
-	| SDefn (FunSig(_, _) as typ, name, expr) ->
-			let llvm_type = ltype_of_typ typ in
-			let llvm_val = gen_expr builder scope expr in
-			let scope = add_variable name (llvm_val, llvm_type) scope in
-			(builder, scope)
 	| SDefn (typ, name, expr) ->
 		let llvm_type = ltype_of_typ typ in
 		let expr_val = gen_expr builder scope expr in
-		let llvm_val = L.build_alloca (ltype_of_typ typ) name builder in
+		let llvm_val = L.build_alloca llvm_type name builder in
 		let scope = add_variable name (llvm_val, llvm_type) scope in
 		ignore (L.build_store expr_val llvm_val builder);
 		(builder, scope)
@@ -241,7 +212,7 @@ let rec gen_stmt (builder, scope) = function
 	| (_, SFloatLit f) -> L.const_float float_t f
 	| (_, SId id) ->
 		let val_ptr = fst(lookup id scope) in
-		L.build_load val_ptr id builder
+		L.build_load val_ptr (id ^ "_load") builder
 	| (_, SBinop (a, op, b)) ->
 		let e1 = gen_expr builder scope a
 			and e2 = gen_expr builder scope b in
@@ -326,7 +297,7 @@ let rec gen_stmt (builder, scope) = function
 			and formal_types =
 				Array.of_list (List.map (fun (t) -> ltype_of_typ t) argtyps) in
 			let ret_type = ltype_of_typ rtyp in
-			let ftype = define_function_with_scope context the_module scope_struct_type formal_types ret_type in
+			let ftype = get_llvm_function_type context the_module scope_struct_type formal_types ret_type in
 		(* in let ftype = L.function_type (ltype_of_typ rtyp) formal_types in *)
 			let fdef = L.define_function name ftype the_module in
 			let builder = L.builder_at_end context (L.entry_block fdef) in
@@ -369,18 +340,18 @@ let rec gen_stmt (builder, scope) = function
 		L.build_call printf_func [| float_format_str ; (gen_expr builder scope e) |]
 			"printf" builder
 	| (s, SCall((_,SId(name)), args)) ->
-		(* let fdef = lookup name scope in
-				let llargs = List.rev (List.map (gen_expr builder scope) (List.rev args)) in
-				let result = name ^ "_result" in
-				L.build_call fdef (Array.of_list llargs) result builder *)
 
-
-		let fdef = fst(lookup name scope) in
+		(* print_endline("SCall"); *)
+		let fdef_ptr = fst(lookup name scope) in
+		(* print_endline("fdef_ptr: " ^ L.string_of_llvalue fdef_ptr); *)
+		let fdef = L.build_load fdef_ptr "fdef" builder in
+		(* print_endline("fdef: " ^ L.string_of_llvalue fdef); *)
 		(* Generate LLVM expressions for arguments *)
 		let llargs = List.map (gen_expr builder scope) args in
+		(* print_endline("llargs done"); *)
 		(* Include the current scope as the first argument *)
-		let scope_val = create_llvm_scope context builder scope scope_struct_type
-		in
+		let scope_val = create_llvm_scope context builder scope scope_struct_type in
+		(* print_endline("scope_val done");	 *)
 		let llargs_with_scope = scope_val :: llargs in
 		let result = name ^ "_result" in
 		let scope = create_scope ~parent:scope ()
@@ -391,28 +362,11 @@ let rec gen_stmt (builder, scope) = function
 	(* | (s, SCall((_,SFunction(args, body)), [e])) -> *)
 	| (s, SCall(anon_func, args)) ->
 				let func_defn = gen_expr builder scope anon_func in
-				let llargs = List.rev (List.map (gen_expr builder scope) (List.rev args)) in
+				let scope_val = create_llvm_scope context builder scope scope_struct_type in
+				let llargs = List.map (gen_expr builder scope) args in
+				let llargs_with_scope = scope_val :: llargs in
 				let result = (anon_name 10) ^ "_result" in
-				L.build_call func_defn (Array.of_list llargs) result builder
-	(* | (_, SCall (callee, args)) ->
-		let callee_func =
-			match callee with
-			| (_, SId "print") -> (* Handle print function ONLY INT FOR NOW *)
-				print_endline (string_of_sexpr_list "," args);
-				 List.iter (fun arg ->
-					let arg_val = gen_expr builder scope arg in
-					ignore (L.build_call print_int_fn [| arg_val |] "print_int" builder)
-				) args;
-				L.const_int i32_t 0
-				(* raise (Failure ("In print")) *)
-			| (_, SId name) ->  (*search in scope instead*)
-				(match L.lookup_function name the_module with
-				| Some func -> func
-				| None -> raise (Failure ("Function not found: " ^ name)))
-			| _ -> raise (Failure "Only function identifiers can be called") *)
-		(* in
-		let llvm_args = Array.of_list (List.map (gen_expr builder scope) args) in
-		L.build_call callee_func llvm_args "%s\n" builder *)
+				L.build_call func_defn (Array.of_list llargs_with_scope) result builder
 	| (_, SStructId s) -> raise (Failure "SStructId not implemented yet")
 	 | (_, SStructAccess s) -> raise (Failure "SStructAccess not implemented yet")
 	| (_, SStructAssign s) -> raise (Failure "SStructAssign not implemented yet") 
