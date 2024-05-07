@@ -14,6 +14,7 @@ and sx =
   | SBinop of sexpr * bop * sexpr
   | SAssign of sexpr * sexpr
   | SListLit of typ * sexpr list
+  | SListComp of sexpr * sexpr
   | SFunction of sbind list * sstmt list
   | SCall of sexpr * sexpr list
   | SStructId of string

@@ -258,10 +258,10 @@ let rec gen_stmt (builder, scope) = function
 				 | A.Lequal      -> L.build_icmp L.Icmp.Sle
 				 | _        -> raise (Failure "Unimplemented binop")
 			end ) e1 e2 "tmp" builder
-	| (_, (SAssign (lhs, e))) -> 
-      let e' = gen_expr builder scope e in 
-      (begin 
-        match lhs with 
+	| (_, (SAssign (lhs, e))) ->
+      let e' = gen_expr builder scope e in
+      (begin
+        match lhs with
         (_, SId id) -> ignore(L.build_store e' (fst(lookup id scope)) builder); e'
         | (_, SIndex (lst, i)) ->
           let lst' = gen_expr builder scope lst in 
@@ -285,6 +285,36 @@ let rec gen_stmt (builder, scope) = function
                     let i' = L.build_in_bounds_gep arr [|L.const_int i32_t i |] "i" builder in 
                     ignore (L.build_store x' i' builder) in
     List.iteri gen_list_item lst; arr
+  | (_, SListComp(size, (typ, v))) ->
+    (* let v' = gen_expr builder scope (typ, v) in *)
+    let n = gen_expr builder scope size in
+    let n' = L.build_fptosi n i32_t "def" builder in
+    (* (* let len = L.const_int i32_t (L.int64_of_const n') in *) *)
+    (* let len = (match (L.int64_of_const n') with  *)
+    (*           Some ln -> ((Int64.to_int ln)) | _ -> raise (Failure "array length is invalid")) in *)
+    (*           (* Some ln -> (Int64.to_int ln) | _ -> raise (Failure "array length is invalid")) in *) *)
+    (* let list_ptr = L.build_array_malloc (ltype_of_typ typ) n' "list" builder in *)
+    L.build_array_malloc (ltype_of_typ typ) n' "list" builder
+    (*    let rec init_list (i : int) = *)
+    (*     if i < len then ( *)
+    (*         let ptr = L.build_gep list_ptr [| L.const_int i32_t 0; L.const_int i32_t i |] "ptr" builder in *)
+    (*         ignore(L.build_store v' ptr builder); *)
+    (*         init_list (i + 1) *)
+    (*     ) *)
+    (* in *)
+    (* init_list 0; *)
+    (* list_ptr *)
+  (* | (_, SListComp((_, SLiteral size), v)) ->  *)
+  (*   let n = gen_expr builder scope size in *)
+  (*   let ty = ltype_of_typ typ in  *)
+  (*   let arr = L.build_array_malloc ty n "list" builder in  *)
+  (*   let gen_list_item =  *)
+  (*     fun i x ->  let x' = gen_expr builder scope x in  *)
+  (*                 let i' = L.build_in_bounds_gep arr [|L.const_int i32_t i |] "i" builder in  *)
+  (*                 ignore (L.build_store x' i' builder) in  *)
+  (*   let rec help x =  *)
+  (*     function m when m < size -> gen_list_item m x; help x (m + 1) | _ -> () in *)
+  (*   help (typ, v) 0; arr *)
   | (_, SIndex (lst, i)) -> 
       let lst' = gen_expr builder scope lst in 
       let l = gen_expr builder scope i in 

@@ -14,3 +14,4 @@ FunC.code-workspace
 FunC.opam
 test/*.out
 .vscode*
+src/example.*

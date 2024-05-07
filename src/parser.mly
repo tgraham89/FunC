@@ -152,7 +152,7 @@ expr_rule:
   | expr_rule OR expr_rule        { Binop ($1, Or, $3) }
   | ID LBRACK expr_rule RBRACK         { Index(Id $1, $3) }
   | expr_rule NOT expr_rule       { Binop ($1, Not, $3) }
-  | VBAR LITERAL COMMA LITERAL VBAR     { ListComp($2, Literal($4)) }
+  | VBAR expr_rule COMMA expr_rule VBAR     { ListComp($2, $4) }
   // | ID ASSIGN expr_rule           { Assign (Id($1), $3) }
   // | ID LBRACK expr_rule RBRACK ASSIGN expr_rule        { Assign (Index(Id $1, $3), $3) }
   | expr_rule ASSIGN expr_rule           { Assign ($1, $3) }

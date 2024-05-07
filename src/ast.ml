@@ -30,7 +30,7 @@ type expr =
   | Binop of expr * bop * expr
   | Assign of expr * expr
   | ListLit of expr list
-  | ListComp of int * expr 
+  | ListComp of expr * expr 
   | StructId of string
   | Function of bind list * stmt list
   | Call of expr * expr list
@@ -119,8 +119,7 @@ let rec string_of_expr = function
   | ChrLit(c) -> String.make 1 c
   | FloatLit(f) -> string_of_float f
   | ListLit(lst) -> "[" ^ string_of_expr_list ", " lst ^ "]" 
-  | ListComp(x, Literal(n)) -> let rec replicate = function m when m > 1 -> Literal(x) :: replicate (m - 1) | _ -> [] in 
-    "[" ^ string_of_expr_list ", " (replicate n) ^ "]"
+  | ListComp(n, x) -> "[" ^ string_of_expr n ^ " * " ^ string_of_expr x ^ "]"
   | StructId(s) -> s 
   | Id(s) -> s
   | Binop(e1, o, e2) -> string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2

@@ -107,27 +107,32 @@ let check (program) =
         | FloatLit l -> (scopes, Float, SFloatLit l)
         | StrLit l -> (scopes, String, SStrLit l)
         | ChrLit ch -> (scopes, Char, SChrLit ch)
-        | ListLit x -> 
+        | ListLit x ->
           let rec verify_list = function 
-          [] -> (EmptyList, true) 
-          | x :: [] -> let (_, tyx, _) = check_expr scopes x in (tyx, true) 
-          | x :: rest -> 
+          [] -> (EmptyList, true)
+          | x :: [] -> let (_, tyx, _) = check_expr scopes x in (tyx, true)
+          | x :: rest ->
             let (_, tyx, _) = check_expr scopes x 
             in (tyx, List.for_all (fun a -> let (_, ca, _) = check_expr scopes a in ca = tyx) rest) in
             let slist = List.map (fun (_, t, x) -> (t, x)) (List.map (check_expr scopes) x) in
             let (tylist, valid) = verify_list x in
             let slistlit = (scopes, tylist, SListLit(tylist, slist)) in
             if valid then (scopes, List(tylist), SListLit(tylist, slist)) else raise (Failure "the types of this list dont match")
-        | ListComp (n, ex) -> 
-          let rec replicate = function m when m > 0 -> ex :: replicate (m - 1) | _ -> [] in
-          check_expr scopes (ListLit (replicate n))
+        (* | ListComp (Literal n, ex) -> let nt = typ_of_expr scopes n in *)
+        | ListComp (n, v) ->
+          let (nt, vt) = (typ_of_expr scopes n, typ_of_expr scopes v) in
+          check_assign nt Int "number of items must be an int";
+          (* let rec replicate x = function m when m > 0 -> (vt, x) :: replicate x (m - 1) | _ -> [] in *)
+          let (_, tyx, x) = check_expr scopes v in 
+          let (_, tn, ts) = check_expr scopes n in
+          (scopes, List(vt), SListComp((tn, ts), (tyx, x)))
         | Assign(Index(Id id, i), e) ->
           let lt = begin match (type_of_identifier scopes id) with List t -> t | _ -> raise (Failure "must be a list") end in
           let (_, idt, id') = check_expr scopes (Index(Id id, i)) in
           let (_, rt, e') = check_expr scopes e in 
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^
                     string_of_typ rt ^ " in " ^ string_of_expr e in
-          check_assign lt rt err;  
+          check_assign lt rt err;
           (scopes, lt, SAssign((idt, id'), (rt, e')))
       | Assign(Id(id), e) as ex ->
           let lt = (type_of_identifier scopes id) in
