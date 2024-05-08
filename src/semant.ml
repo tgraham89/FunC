@@ -116,7 +116,7 @@ let check (program) =
             in (tyx, List.for_all (fun a -> let (_, ca, _) = check_expr scopes a in ca = tyx) rest) in
             let slist = List.map (fun (_, t, x) -> (t, x)) (List.map (check_expr scopes) x) in
             let (tylist, valid) = verify_list x in
-            let slistlit = (scopes, tylist, SListLit(tylist, slist)) in
+            (* let slistlit = (scopes, tylist, SListLit(tylist, slist)) in *)
             if valid then (scopes, List(tylist), SListLit(tylist, slist)) else raise (Failure "the types of this list dont match")
         (* | ListComp (Literal n, ex) -> let nt = typ_of_expr scopes n in *)
         | ListComp (n, v) ->
