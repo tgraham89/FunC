@@ -66,9 +66,10 @@ let rec string_of_sexpr (t, e) =
     (* | SStructAccess(str, mem) -> "(" ^ string_of_sexpr str ^ "." ^ string_of_sexpr mem ^ ")" *)
     | SStructAccess(str) -> string_of_sexpr str
     | SStructAssign(e) -> "(" ^ string_of_sexpr_list ", " e ^ ")"
-    | SUnaryOp(op, ex) -> match op with SNeg -> "-" ^ string_of_sexpr ex ^ ""
+    | SUnaryOp(op, ex) -> begin match op with SNeg -> "-" ^ string_of_sexpr ex ^ ""
                                       | SPos -> "+" ^  string_of_sexpr ex ^ ""
-                                      | SBang -> "!" ^  string_of_sexpr ex ^ ""
+                                      | SBang -> "!" ^  string_of_sexpr ex ^ "" end
+    | _ -> "Did not match this expression"
     ) ^ ")"
 
   (* todo need to add the other sexpr's *)

@@ -97,7 +97,7 @@ let translate ({sbody}) =
 	and i8_t       = L.i8_type     context
 	and i1_t       = L.i1_type     context
 	and float_t    = L.double_type context
-	and void_t     = L.void_type   context 
+	(* and void_t     = L.void_type   context  *)
 in
 	let scope_struct_type = define_scope_struct context in
 	(* Types *)
@@ -122,9 +122,9 @@ in
 
 	let global_scope = create_scope () in
 
-	let map_to_str m = 
+	(* let map_to_str m = 
 		let inners = List.map (fun (k, v) -> k ^ " -> " ^ (string_of_int v)) (StringMap.bindings m)
-		in "[" ^ (String.concat ", " inners) ^ "]" in
+		in "[" ^ (String.concat ", " inners) ^ "]" in *)
 
 		
 	(* Define the main function *)
@@ -161,7 +161,6 @@ let rec gen_outer_scope_vars scope scope_val builder =
 	let num_vars = StringMap.cardinal scope.vars in
 	let idx = ref 0 in
 	List.iter (fun var_name ->
-			(* print_endline("var_name: " ^ var_name ^ " idx: " ^ string_of_int !idx); *)
 			if !idx < num_vars then
 					let llvm_type = snd(lookup var_name scope) in
 					ignore(gen_scope_var context builder scope_val !idx var_name llvm_type);
@@ -260,32 +259,7 @@ let rec gen_stmt (builder, scope) = function
     (* let v' = gen_expr builder scope (typ, v) in *)
     let n = gen_expr builder scope size in
     let n' = L.build_fptosi n i32_t "def" builder in
-    (* (* let len = L.const_int i32_t (L.int64_of_const n') in *) *)
-    (* let len = (match (L.int64_of_const n') with  *)
-    (*           Some ln -> ((Int64.to_int ln)) | _ -> raise (Failure "array length is invalid")) in *)
-    (*           (* Some ln -> (Int64.to_int ln) | _ -> raise (Failure "array length is invalid")) in *) *)
-    (* let list_ptr = L.build_array_malloc (ltype_of_typ typ) n' "list" builder in *)
     L.build_array_malloc (ltype_of_typ typ) n' "list" builder
-    (*    let rec init_list (i : int) = *)
-    (*     if i < len then ( *)
-    (*         let ptr = L.build_gep list_ptr [| L.const_int i32_t 0; L.const_int i32_t i |] "ptr" builder in *)
-    (*         ignore(L.build_store v' ptr builder); *)
-    (*         init_list (i + 1) *)
-    (*     ) *)
-    (* in *)
-    (* init_list 0; *)
-    (* list_ptr *)
-  (* | (_, SListComp((_, SLiteral size), v)) ->  *)
-  (*   let n = gen_expr builder scope size in *)
-  (*   let ty = ltype_of_typ typ in  *)
-  (*   let arr = L.build_array_malloc ty n "list" builder in  *)
-  (*   let gen_list_item =  *)
-  (*     fun i x ->  let x' = gen_expr builder scope x in  *)
-  (*                 let i' = L.build_in_bounds_gep arr [|L.const_int i32_t i |] "i" builder in  *)
-  (*                 ignore (L.build_store x' i' builder) in  *)
-  (*   let rec help x =  *)
-  (*     function m when m < size -> gen_list_item m x; help x (m + 1) | _ -> () in *)
-  (*   help (typ, v) 0; arr *)
   | (_, SIndex (lst, i)) -> 
       let lst' = gen_expr builder scope lst in 
       let l = gen_expr builder scope i in 
@@ -383,7 +357,7 @@ and gen_if_stmt builder scope cond then_stmt else_stmt_opt =
 	(* Generate code for the "then" branch *)
 	L.position_at_end then_bb builder;
 	ignore (gen_stmt (builder, scope) then_stmt);
-	let new_then_bb = L.insertion_block builder in
+	L.insertion_block builder;
 	ignore (L.build_br merge_bb builder); (* Jump to the merge block *)
 
 	(* Generate code for the "else" branch *)
@@ -391,7 +365,7 @@ L.position_at_end else_bb builder;
 	(match else_stmt_opt with
 	| Some else_stmt -> ignore (gen_stmt (builder, scope) else_stmt)
 	| None -> ());
-	let new_else_bb = L.insertion_block builder in
+	L.insertion_block builder;
 	ignore (L.build_br merge_bb builder); (* Jump to the merge block *)
 
 	(* Move to the merge block *)

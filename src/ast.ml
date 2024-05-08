@@ -136,6 +136,7 @@ let rec string_of_expr = function
                                     | Pos -> "+(" ^  string_of_expr ex ^ ")"
                                     | Bang -> "!(" ^ string_of_expr ex ^ ")" end
   | Index(id, i) -> string_of_expr id ^ " at index " ^  string_of_expr i
+  | _ -> "did not write a conversion to string for this expression"
 and
 string_of_expr_list delim = function
   [] -> ""
