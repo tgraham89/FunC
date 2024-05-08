@@ -352,12 +352,12 @@ and gen_if_stmt builder scope cond then_stmt else_stmt_opt =
 	let else_bb = L.append_block context "else" the_function in
 	let merge_bb = L.append_block context "merge" the_function in
 
-	L.build_cond_br (gen_expr builder scope cond) then_bb else_bb builder;
+	ignore (L.build_cond_br (gen_expr builder scope cond) then_bb else_bb builder);
 
 	(* Generate code for the "then" branch *)
 	L.position_at_end then_bb builder;
 	ignore (gen_stmt (builder, scope) then_stmt);
-	L.insertion_block builder;
+	ignore (L.insertion_block builder);
 	ignore (L.build_br merge_bb builder); (* Jump to the merge block *)
 
 	(* Generate code for the "else" branch *)
@@ -365,7 +365,7 @@ L.position_at_end else_bb builder;
 	(match else_stmt_opt with
 	| Some else_stmt -> ignore (gen_stmt (builder, scope) else_stmt)
 	| None -> ());
-	L.insertion_block builder;
+	ignore (L.insertion_block builder);
 	ignore (L.build_br merge_bb builder); (* Jump to the merge block *)
 
 	(* Move to the merge block *)
@@ -405,7 +405,7 @@ and gen_for_stmt builder scope init cond step body =
 	ignore (L.build_br inc_bb body_builder);
 
 	let inc_builder = L.builder_at_end context inc_bb in
-	gen_expr inc_builder new_scope step;
+	ignore (gen_expr inc_builder new_scope step);
 	ignore (L.build_br cond_bb inc_builder);
 	L.position_at_end merge_bb builder
 
