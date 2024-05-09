@@ -197,8 +197,6 @@ let check (program) =
           | _ -> raise (Failure "This should only involve function signatures")
           end
         | Function(args, body) ->
-            let help = function Decl (x, y) -> (x, y) | _ -> raise (Failure "shouldn't happen") in
-            let f acc bnd = let (ty, id) = help bnd in add_to_top_scope id ty acc in
             let scopes = init_new_scope scopes in
             let (scopes, arg_bind_list) = check_bind_list scopes args in
             let arg_types = 
@@ -231,7 +229,7 @@ let check (program) =
           List x -> let (_, s, sid) = (check_expr scopes (Id id)) in 
                     let (_, r, sindex) = (check_expr scopes i) in
           (scopes, x, SIndex ((s, sid), (r, sindex))) | _ -> raise (Failure "can only index lists") end
- 
+        | _ -> raise (Failure "Unknown Expression - semantic analysis phase") 
     and check_expr_list scopes lst = 
       let help = List.map (check_expr scopes) lst 
       in List.map (fun (_, x, y) -> (x, y)) help
