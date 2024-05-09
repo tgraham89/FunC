@@ -75,10 +75,11 @@ let run_expr_tests () =
   let expr13 = StructAssign([Literal 1; Literal 2]) in
   let expr14 = Id("id") in
   let expr15 = Binop(Literal 1, Add, Literal 1) in
-  let expr16 = Assign("x", StrLit("hello world")) in
+  let expr16 = Assign(Id("x"), StrLit("hello world")) in
   let expr17 = UnaryOp(Pos, Literal 1) in
   let expr18 = UnaryOp(Neg, Literal 1) in
   let expr19 = UnaryOp(Bang, BoolLit(true)) in
+  let expr20 = Index(Id("i1"), Id("i2")) in
   print_endline ("Executing expr tests...");
   assert (string_of_expr expr1 = "0");
   assert (string_of_expr expr2 = "1");
@@ -99,6 +100,7 @@ let run_expr_tests () =
   assert (string_of_expr expr17 = "+(1)");
   assert (string_of_expr expr18 = "-(1)");
   assert (string_of_expr expr19 = "!(true)");
+  assert (string_of_expr expr20 = "i1 at index i2");
   print_endline ("Done.\n")
 
 (* Edge cases for expression tests *)
@@ -114,7 +116,7 @@ let run_expr_tests_edge_cases () =
 (* Test cases for function and bind *)
 let run_expr_tests_function_and_bind_cases () =
   let hello_world_func = Function([Decl(Int, "hello_world_func")], [Expr(StrLit("hello world"))]) in
-  let defn_func = Function([Defn(Int, "my_func", Assign("my_var", StrLit("my_val")))], [Expr(StrLit("hello world"))]) in
+  let defn_func = Function([Defn(Int, "my_func", Assign(Id("my_var"), StrLit("my_val")))], [Expr(StrLit("hello world"))]) in
   print_endline ("Executing expr tests for function and bind...");
   assert (string_of_expr hello_world_func = "(int hello_world_func) {\n\"hello world\";\n}");
   assert (string_of_expr defn_func = "(int my_func = my_var = \"my_val\") {\n\"hello world\";\n}");
@@ -143,6 +145,11 @@ let run_type_tests () =
   let typ10 = List String in
   let typ11 = List Void in
   let typ12 = List Float in
+  let typ13 = StructSig("structsig") in
+  let typ14 = StructMem("structmem", [Decl(Int, "hello_world_func")]) in
+  let typ15 = FunSig([Int], Int) in
+  let typ16 = EmptyList in
+  let typ17 = Struct in
   print_endline ("Executing type tests...");
   assert (string_of_typ typ1 = "int");
   assert (string_of_typ typ2 = "bool");
@@ -156,6 +163,11 @@ let run_type_tests () =
   assert (string_of_typ typ10 = "list<string>");
   assert (string_of_typ typ11 = "list<void>");
   assert (string_of_typ typ12 = "list<float>");
+  assert (string_of_typ typ13 = "structsig");  
+  assert (string_of_typ typ14 = "structmem int hello_world_func");
+  assert (string_of_typ typ15 = "function<int> -> int");
+  assert (string_of_typ typ16 = "[]");
+  assert (string_of_typ typ17 = "struct");
   print_endline ("Done.\n")
 
 let run_type_tests_struct_cases () =
@@ -187,6 +199,10 @@ let run_stmt_tests () =
   let stmt5 = While(BoolLit(true), Expr(StrLit("its true"))) in
   let stmt6 = For(Decl(Int, "hello_world_func"), StrLit("its true"), StrLit("its false"), Expr(Zero)) in
   let stmt7 = If(BoolLit(true), Expr(StrLit("its true"))) in
+  let stmt8 = StructDecl({sname = "structname"; members = []}) in
+  let stmt9 = StructDecl({sname = "structname"; members = [(Decl(String, "members"))]}) in
+  let stmt10 = StructDecl({sname = "structname"; members = [(Decl(String, "members1"));(Decl(String, "members2"))]}) in
+  let stmt11 = Return(Zero) in
   print_endline ("Executing statement tests...");
   assert (string_of_stmt stmt1 = "{\n0;\n0;\n0;\n}\n");
   assert (string_of_stmt stmt2 = "0;\n");
@@ -195,6 +211,10 @@ let run_stmt_tests () =
   assert (string_of_stmt stmt5 = "while (true) \"its true\";\n");
   assert (string_of_stmt stmt6 = "for (int hello_world_func; \"its true\"; \"its false\") {\n0;\n}");
   assert (string_of_stmt stmt7 = "if (true)\n\"its true\";\n");
+  assert (string_of_stmt stmt8 = "struct structname {\n,\n};\n");
+  assert (string_of_stmt stmt9 = "struct structname {\nstring members,\n};\n");
+  assert (string_of_stmt stmt10 = "struct structname {\nstring members1,\nstring members2,\n};\n");
+  assert (string_of_stmt stmt11 = "\treturn 0;\n");
   print_endline ("Done.\n")
 
 
