@@ -14,11 +14,11 @@ Brendan Fay, Daniel Lee, Jesse Chong, Cecilia Shen, Syed Muhammad Raza, Thomas G
 
 > cd FunC
 
-- Compile the FunC compiler. This will run all unit tests as well
+- Compile the FunC compiler via this command.
 
 > make
   
-- To remove the generated files from compiling and running tests
+- To remove the generated files from compiling and running tests, run this command.
 
 > make clean    
 
@@ -34,17 +34,7 @@ You need to have LLVM 13 or 17 installed. To compile and run a simple program:
 
 > lli <name_of_program>.out
 
-# How To Run For Hello World
-- Run "make setup"
-- Run "make hello_world"
-
-# Utility Commands
-- make build (builds ast, scanner, parser, and semant)
-- make scanner
-- make parser
-- make semant
-- make 
-- make setup (setup dev env for ocaml)
+You can also run the unit tests `make unit tests` to test FunC across multiple cases and features (e.g., the "hello world" program is represented as an end-to-end unit test). You can review the outputted artifacts generated as well this way.
 
 # Unit Testing Commands
 - There are unit tests available for each layer of FunC (ast, scanner, parser, sast, semant, irgen... as well as e2e testing).
@@ -61,6 +51,17 @@ You need to have LLVM 13 or 17 installed. To compile and run a simple program:
   - `make unit_tests_irgen`
   - `make unit_tests_e2e`
 
+# How To Run For Hello World
+- Run "make setup"
+- Run "make hello_world"
+
+# Utility Commands
+- make build
+- make scanner
+- make parser
+- make semant
+- make 
+- make setup (setup dev env for ocaml)
 
 # Other Test Commands
 - make hello_world (makes and semantically checks the hello_world.tb file)
