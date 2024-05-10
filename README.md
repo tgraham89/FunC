@@ -4,6 +4,36 @@ FunC implementation for PLT Spring 2024
 # Authors
 Brendan Fay, Daniel Lee, Jesse Chong, Cecilia Shen, Syed Muhammad Raza, Thomas Graham
 
+# Installing FunC
+
+- Clone the FunC git repository
+
+> git clone https://github.com/tgraham89/FunC.git/
+
+- Navigate to the FunC folder
+
+> cd FunC
+
+- Compile the FunC compiler. This will run all unit tests as well
+
+> make
+  
+- To remove the generated files from compiling and running tests
+
+> make clean    
+
+# Running your first program
+
+You need to have LLVM 13 or 17 installed. To compile and run a simple program:
+
+- Compile your program
+
+> ./func.native -l <name_of_program>.func> <name_of_program>.out         
+
+- Run your program
+
+> lli <name_of_program>.out
+
 # How To Run For Hello World
 - Run "make setup"
 - Run "make hello_world"
@@ -45,11 +75,7 @@ We have a working scanner, parser, and semantics.ml for our hello_world.tb. This
 
 We have tests case for the ast "unit_tests_ast.ml" and preliminary test cases for the scanner "unit_tests_scanner.ml". This can be run using the "make unit_tests" command.
 
-You can run all tests using the above commands. The output will show certain warnings. We will fix these
-prior to the final submission.
-
-We still need to implement structs, unary operators, scope resolution, and other key features. We also need
-to implement the conversion to IR. We plan to complete these by the deadline.
+You can run all tests using the above commands. The output will show certain warnings.
 
 
 
