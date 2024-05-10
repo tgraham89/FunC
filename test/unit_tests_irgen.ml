@@ -81,7 +81,7 @@ let run_happy_path_tests () =
 
 (* Series of unhappy path tests (these should error out due to parser failures in the semant layer ) *)
 let run_unhappy_path_tests () =
-  let unhappy_past_test_dir = "test/unhappy_test_inputs/semant" in
+  let unhappy_past_test_dir = "test/unhappy_test_inputs/semant_and_irgen" in
   let test_files = Sys.readdir unhappy_past_test_dir in
   Array.iter (process_file unhappy_past_test_dir false) test_files
 

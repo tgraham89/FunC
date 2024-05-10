@@ -1,0 +1,2 @@
+string awesome_string = "hello, world!";
+print(awesome_string);

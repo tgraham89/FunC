@@ -1,0 +1,11 @@
+list<int> x = [1, 2, 3];
+
+for (int i = 0; i < 3; i = i + 1) {
+    print(x[i]);
+}
+
+function<function<int> -> int> -> int f = (function<int> -> int g) => {
+    return g(5) + 3;
+};
+
+print(f((int x) => { return x + 2; })); 

@@ -80,7 +80,7 @@ clean:
 
 .PHONY: unit_tests unit_tests_ast unit_tests_scanner unit_tests_parser unit_tests_sast unit_tests_semant unit_tests_irgen unit_tests_e2e
 
-unit_tests: unit_tests_ast unit_tests_scanner unit_tests_parser unit_tests_sast unit_tests_semant unit_tests_irgen unit_tests_e2e
+unit_tests: clean unit_tests_ast unit_tests_scanner unit_tests_parser unit_tests_sast unit_tests_semant unit_tests_irgen unit_tests_e2e
 	
 unit_tests_ast:
 	ocamlbuild -I src test/unit_tests_ast.native
@@ -160,5 +160,6 @@ unit_tests_e2e_work:
 	        fi; \
 		fi; \
 	done
-	# All done. The .ll and .output files can be viewed inside the e2e folders.
+	# All done. The .ll and .output files can be viewed inside the "e2e_actual_outputs" folder.
+	# FYI that the "make clean" command will delete all these artifacts.
 	echo "\nThe unit_tests_e2e script passed.\n";

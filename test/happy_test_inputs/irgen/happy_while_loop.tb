@@ -1,0 +1,6 @@
+int x = 6;
+
+while (x <= 17) {
+	print(x);
+	x = x + 2;
+}
