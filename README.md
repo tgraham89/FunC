@@ -69,15 +69,3 @@ You need to have LLVM 13 or 17 installed. To compile and run a simple program:
 # Dependencies
 - ocaml
 - ocamlbuild
-
-# Status
-We have a working scanner, parser, and semantics.ml for our hello_world.tb. This can be run using the "make hello_world" command.
-
-We have tests case for the ast "unit_tests_ast.ml" and preliminary test cases for the scanner "unit_tests_scanner.ml". This can be run using the "make unit_tests" command.
-
-You can run all tests using the above commands. The output will show certain warnings.
-
-
-
-
-
