@@ -1,0 +1,6 @@
+function<int> subtract_2 = (int x) {
+    return x - 2;
+};
+
+int x = 12;
+print(subtract_2(12));

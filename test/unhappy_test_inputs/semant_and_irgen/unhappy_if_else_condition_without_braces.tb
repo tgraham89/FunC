@@ -1,0 +1,6 @@
+int x = 1;
+
+if (x == 1);
+    print("its 1!");
+else;
+    print("its not 1.");

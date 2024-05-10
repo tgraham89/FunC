@@ -78,6 +78,8 @@ clean:
 	rm -f ./test/happy_test_inputs/e2e_actual_outputs/*.ll
 	rm -f ./test/happy_test_inputs/e2e_actual_outputs/*.output
 
+
+
 .PHONY: unit_tests unit_tests_ast unit_tests_scanner unit_tests_parser unit_tests_sast unit_tests_semant unit_tests_irgen unit_tests_e2e
 
 unit_tests: clean unit_tests_ast unit_tests_scanner unit_tests_parser unit_tests_sast unit_tests_semant unit_tests_irgen unit_tests_e2e
@@ -118,10 +120,10 @@ unit_tests_irgen:
 	ocamlbuild -pkgs llvm -I src test/unit_tests_irgen.native
 	./unit_tests_irgen.native > ./unit_tests_irgen.out
 
-unit_tests_e2e: unit_tests_e2e_work
-
-unit_tests_e2e_work:
+unit_tests_e2e:
 	## Start work on the e2e unit tests...
+	## These e2e tests are for happy cases.
+	## unit_tests_irgen tests both happy and unhappy cases.
 	rm -f /test/ast.cmi
 	rm -f /test/ast.cmo
 	ocamlbuild -pkgs llvm -I src src/func.native

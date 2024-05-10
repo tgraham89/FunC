@@ -1,0 +1,6 @@
+lambda<int> -> int f => {
+    return x + 10;
+  };
+
+int result = f(1);
+print(result);
