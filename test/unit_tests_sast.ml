@@ -152,7 +152,7 @@ let run_binop_tests () =
   assert (run_sexpr_test arg16 expect16)
 
 let run_assign_test () =
-  let arg1 = (String, SAssign("x", (String, SStrLit("hello world")))) in
+  let arg1 = (String, SAssign((String, SId("x")), (String, SStrLit("hello world")))) in
   let exp1 = "(string : x = (string : \"hello world\"))" in
   assert (run_sexpr_test arg1 exp1)
 

@@ -118,7 +118,7 @@ unit_tests_irgen:
 	ocamlbuild -pkgs llvm -I src test/unit_tests_irgen.native
 	./unit_tests_irgen.native > ./unit_tests_irgen.out
 
-unit_tests_e2e: clean unit_tests_e2e_work
+unit_tests_e2e: unit_tests_e2e_work
 
 unit_tests_e2e_work:
 	## Start work on the e2e unit tests...

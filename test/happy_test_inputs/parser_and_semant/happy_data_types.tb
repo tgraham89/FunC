@@ -6,9 +6,7 @@ function<> -> int main = () => {
     float f = 1.23;
     void v;
     list<int> jk;
-    struct St {
-        int k,
-    };
+
     function<> -> int f1 = () => { return 0; };
     lambda<> -> int l1 = () => { return 0; };
     return 0;
